@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleShell from '../components/ArticleShell.astro';
+import { absoluteUrl, notes, postBody, relatedHref, SITE_URL } from '../lib/content.mjs';
+
+export function getStaticPaths() {
+  return notes.posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const body = postBody(post.slug);
+const title = `${post.title}｜手記｜Phenom Canvas Lab`;
+const meta = [
+  post.publishedAt,
+  post.updatedAt ? `更新 ${post.updatedAt}` : null,
+  post.readingMinutes ? `約 ${post.readingMinutes} 分鐘` : null,
+  ...(post.tags ?? []),
+].filter(Boolean).join(' · ');
+---
+
+<BaseLayout
+  title={title}
+  description={post.summary}
+  keywords={post.keywords ?? []}
+  canonicalPath={`/${post.slug}`}
+  type="article"
+  publishedAt={post.publishedAt}
+  updatedAt={post.updatedAt}
+  schema={{
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    '@id': `${absoluteUrl(`/${post.slug}`)}#article`,
+    url: absoluteUrl(`/${post.slug}`),
+    headline: post.title,
+    alternativeHeadline: post.subtitle,
+    description: post.summary,
+    datePublished: post.publishedAt,
+    ...(post.updatedAt ? { dateModified: post.updatedAt } : {}),
+    timeRequired: `PT${post.readingMinutes}M`,
+    keywords: (post.keywords ?? []).join('、'),
+    inLanguage: 'zh-Hant-TW',
+    isPartOf: { '@id': `${SITE_URL}/#blog` },
+    publisher: { '@id': `${SITE_URL}/#publisher` },
+  }}
+>
+  <ArticleShell title={post.title} subtitle={post.subtitle} meta={meta} currentSlug={post.slug}>
+    <div class="prose" set:html={body} />
+    {(post.related ?? []).length > 0 && (
+      <section class="related">
+        <h2>延伸</h2>
+        <ul>
+          {post.related.map((item) => (
+            <li>
+              <a href={relatedHref(item.href)}>{item.label}</a>
+              {item.note && <span>——{item.note}</span>}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </ArticleShell>
+</BaseLayout>

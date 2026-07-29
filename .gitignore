@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.astro/
+.notes-snapshot/
+public/notes-assets/
+.DS_Store

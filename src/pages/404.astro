@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+---
+
+<BaseLayout title="查無此頁｜手記" description="這個網址沒有對應的手記頁面。" canonicalPath="/404">
+  <main id="main-content" class="not-found">
+    <SiteHeader />
+    <p class="eyebrow">404</p>
+    <h1>查無此頁。</h1>
+    <a href="/">回手記</a>
+  </main>
+</BaseLayout>

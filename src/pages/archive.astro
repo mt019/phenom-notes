@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleShell from '../components/ArticleShell.astro';
+import { absoluteUrl, archive, readText, renderMarkdown, SITE_URL } from '../lib/content.mjs';
+
+const body = renderMarkdown(readText('content/archive.mdx'));
+const span = `${archive.dateRange.from.slice(0, 4)}–${archive.dateRange.to.slice(0, 4)}`;
+const description = `${span} 年寫下的 ${archive.count} 則舊帖，按年份收在同一頁，正文與當年一字不改。`;
+const meta = `${archive.count} 則 · ${archive.dateRange.from} 至 ${archive.dateRange.to}`;
+---
+
+<BaseLayout
+  title="舊帖｜手記｜Phenom Canvas Lab"
+  description={description}
+  keywords={['舊帖', '短記', 'Matters', '舊站存檔', '手記']}
+  canonicalPath="/archive"
+  schema={{
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${absoluteUrl('/archive')}#collection`,
+    url: absoluteUrl('/archive'),
+    name: '舊帖',
+    description,
+    temporalCoverage: `${archive.dateRange.from}/${archive.dateRange.to}`,
+    isPartOf: { '@id': `${SITE_URL}/#blog` },
+  }}
+>
+  <ArticleShell
+    title="舊帖"
+    subtitle={`${span} 年寫在 Matters 與一個已經關掉的個人站上的短記。它們短到撐不起自己的一頁，所以收在這裡，按年份排。`}
+    meta={meta}
+  >
+    <div class="prose archive-prose" set:html={body} />
+  </ArticleShell>
+</BaseLayout>
