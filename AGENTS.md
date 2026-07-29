@@ -6,6 +6,7 @@
 ## 固定契約
 
 - 只消費 `phenom-notes-data` 的 `export:web` snapshot。
+- 公開 canonical 固定為 `https://phenomcanvas.com/notes/`；不可因獨立部署改成子域名。
 - production／preview 一律使用 clean snapshot、完整 data SHA、逐檔 SHA-256 驗證。
 - `data.lock.json` 是 web-only build 的預設 data revision；資料觸發部署可用
   `EXPECTED_DATA_COMMIT` 明確覆寫，但仍須等於 snapshot manifest。

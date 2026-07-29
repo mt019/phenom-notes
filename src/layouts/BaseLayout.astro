@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { absoluteUrl, SITE_URL } from '../lib/content.mjs';
+import { absoluteUrl, publicPath, SITE_URL } from '../lib/content.mjs';
 
 const {
   title,
@@ -68,6 +68,6 @@ const schemaItems = Array.isArray(schema) ? schema : [schema];
   <body>
     <a class="skip-link" href="#main-content">跳至正文</a>
     <slot />
-    <script src="/site.js" defer></script>
+    <script src={publicPath('/site.js')} defer></script>
   </body>
 </html>

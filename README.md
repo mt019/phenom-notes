@@ -13,6 +13,9 @@ npm run dev
 ```
 
 `data:local` 預設讀同層 `../phenom-notes-data`，也可用 `NOTES_DATA_DIR=/path/to/phenom-notes-data` 指定。
+
+部署單元獨立，但公開 canonical 永久保留在 `https://phenomcanvas.com/notes/`；
+Cloudflare 邊緣路由把 `/notes/*` 交給此站，repo 邊界不改變讀者看到的網址。
 建置會逐檔驗證 snapshot manifest 的 SHA-256，並把精確 data commit 寫入
 `dist/deployment-manifest.json`。
 

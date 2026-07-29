@@ -1,6 +1,7 @@
 ---
 import SiteHeader from './SiteHeader.astro';
 import PostNav from './PostNav.astro';
+import { publicPath } from '../lib/content.mjs';
 const { title, subtitle, meta, currentSlug } = Astro.props;
 ---
 
@@ -10,7 +11,7 @@ const { title, subtitle, meta, currentSlug } = Astro.props;
     <aside class="desktop-nav"><PostNav currentSlug={currentSlug} /></aside>
     <article class="article">
       <header class="article-heading">
-        <a class="eyebrow" href="/">手記</a>
+        <a class="eyebrow" href={publicPath('/')}>手記</a>
         <h1>{title}</h1>
         {subtitle && <p class="subtitle">{subtitle}</p>}
         {meta && <p class="article-meta">{meta}</p>}

@@ -5,7 +5,8 @@ import GithubSlugger from 'github-slugger';
 import { marked } from 'marked';
 
 export const SNAPSHOT = resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot');
-export const SITE_URL = 'https://notes.phenomcanvas.com';
+export const SITE_URL = 'https://phenomcanvas.com/notes';
+export const PUBLIC_BASE = '/notes';
 
 export function readJson(path) {
   return JSON.parse(readFileSync(resolve(SNAPSHOT, path), 'utf8'));
@@ -84,13 +85,19 @@ export function groupPostsByYear(posts) {
 }
 
 export function absoluteUrl(path = '/') {
-  return new URL(path, `${SITE_URL}/`).href;
+  return new URL(publicPath(path), 'https://phenomcanvas.com').href;
+}
+
+export function publicPath(path = '/') {
+  if (path === '/' || path === '') return `${PUBLIC_BASE}/`;
+  if (path === PUBLIC_BASE || path.startsWith(`${PUBLIC_BASE}/`)) return path;
+  return `${PUBLIC_BASE}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
 export function relatedHref(href) {
   if (/^https?:\/\//.test(href)) return href;
-  if (href.startsWith('/notes/')) return href.slice('/notes'.length);
-  if (href === '/notes') return '/';
+  if (href.startsWith('/notes/')) return href;
+  if (href === '/notes') return '/notes/';
   // 其餘根路徑目前屬於尚未拆出的 Canvas 產品；不能讓它落到 Notes host 變成 404。
   if (href.startsWith('/')) return new URL(href, 'https://phenomcanvas.com').href;
   return href;

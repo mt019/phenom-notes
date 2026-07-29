@@ -10,7 +10,7 @@ for (const route of routes) {
   if (!existsSync(path)) throw new Error(`缺少靜態路由：${route}`);
   const html = readFileSync(path, 'utf8');
   if (html.length < 2500) throw new Error(`靜態頁內容過少：${route} (${html.length} bytes)`);
-  const canonical = `https://notes.phenomcanvas.com${route === '/' ? '/' : route}`;
+  const canonical = `https://phenomcanvas.com/notes${route === '/' ? '/' : route}`;
   if (!html.includes(`<link rel="canonical" href="${canonical}">`)) {
     throw new Error(`canonical 不符：${route}`);
   }
@@ -18,7 +18,7 @@ for (const route of routes) {
 }
 const home = readFileSync(join(dist, 'index.html'), 'utf8');
 for (const post of notes.posts) {
-  if (!home.includes(`href="/${post.slug}"`)) throw new Error(`首頁缺少文章連結：${post.slug}`);
+  if (!home.includes(`href="/notes/${post.slug}"`)) throw new Error(`首頁缺少文章連結：${post.slug}`);
   const html = readFileSync(htmlFor(`/${post.slug}`), 'utf8');
   if (!html.includes('<div class="prose">')) throw new Error(`文章沒有 build-time 正文：${post.slug}`);
   const source = readFileSync(resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot', 'content', 'posts', `${post.slug}.mdx`), 'utf8');
@@ -27,7 +27,7 @@ for (const post of notes.posts) {
 }
 const sitemap = readFileSync(join(dist, 'sitemap-0.xml'), 'utf8');
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]).sort();
-const expectedUrls = routes.map((route) => `https://notes.phenomcanvas.com${route === '/' ? '' : route}`).sort();
+const expectedUrls = routes.map((route) => `https://phenomcanvas.com/notes${route === '/' ? '' : route}`).sort();
 if (JSON.stringify(sitemapUrls) !== JSON.stringify(expectedUrls)) {
   throw new Error(`sitemap 路由集合不符：${sitemapUrls.length} != ${expectedUrls.length}`);
 }

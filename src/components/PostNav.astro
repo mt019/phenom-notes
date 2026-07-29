@@ -1,18 +1,18 @@
 ---
-import { groupPostsByYear, notes } from '../lib/content.mjs';
+import { groupPostsByYear, notes, publicPath } from '../lib/content.mjs';
 const { currentSlug } = Astro.props;
 const groups = groupPostsByYear(notes.posts);
 ---
 
 <nav class="post-nav" aria-label="全部文章">
-  <a class="post-nav-home" href="/">全部文章</a>
+  <a class="post-nav-home" href={publicPath('/')}>全部文章</a>
   {groups.map((group) => (
     <section>
       <h2>{group.year} 年</h2>
       <ul>
         {group.posts.map((post) => (
           <li>
-            <a href={post.route} aria-current={post.slug === currentSlug ? 'page' : undefined}>
+            <a href={publicPath(post.route)} aria-current={post.slug === currentSlug ? 'page' : undefined}>
               {post.title}
             </a>
           </li>
