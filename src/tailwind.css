@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.notes-html > :first-child {
+  margin-top: 0;
+}
+
+.notes-html h2 {
+  @apply mb-4 mt-12 scroll-mt-20 font-display text-token-xl leading-snug text-ink;
+}
+
+.notes-html h3 {
+  @apply mb-3 mt-8 scroll-mt-20 font-display text-token-lg leading-snug text-ink;
+}
+
+.notes-html p {
+  @apply my-4 text-scaled-base leading-[1.85] text-ink;
+}
+
+.notes-html a {
+  @apply text-accent underline decoration-line underline-offset-2 transition-colors duration-fast hover:decoration-accent;
+}
+
+.notes-html blockquote {
+  @apply my-6 border-l-2 border-line pl-4 text-scaled-base leading-[1.8] text-ink-muted;
+}
+
+.notes-html ul {
+  @apply my-4 list-disc space-y-1.5 pl-5 text-scaled-base leading-[1.8];
+}
+
+.notes-html ol {
+  @apply my-4 list-decimal space-y-1.5 pl-5 text-scaled-base leading-[1.8];
+}
+
+.notes-html li {
+  @apply pl-1 text-ink;
+}
+
+.notes-html hr {
+  @apply my-10 border-line-soft;
+}
+
+.notes-html strong {
+  @apply font-normal text-ink;
+  text-emphasis: filled dot;
+  text-emphasis-position: under left;
+}
+
+.notes-html em {
+  @apply not-italic text-ink-muted;
+}
+
+.notes-html :not(pre) > code {
+  @apply rounded-token-sm border border-line-soft px-1 py-0.5 font-accent text-scaled-sm text-ink;
+}
+
+.notes-html pre {
+  @apply my-6 overflow-x-auto rounded-token-sm border border-line-soft px-4 py-3 font-mono text-scaled-sm leading-[1.7] text-ink;
+}
+
+.notes-html pre > code {
+  border: 0;
+  padding: 0;
+  border-radius: 0;
+  font-family: inherit;
+  font-size: inherit;
+  white-space: pre;
+}
+
+.notes-html table {
+  @apply my-6 block w-full overflow-x-auto border-collapse text-token-sm;
+}
+
+.notes-html th {
+  @apply border-b border-line px-3 py-2 text-left align-bottom text-token-xs text-ink-faint;
+}
+
+.notes-html td {
+  @apply border-b border-line-soft px-3 py-2 align-top text-ink;
+}
+
+.notes-html img {
+  @apply my-6 h-auto max-w-full rounded-token-sm;
+}
+
+.notes-html img[src*="/notes-assets/emoji/"] {
+  display: inline;
+  width: 1.25em;
+  height: 1.25em;
+  margin: 0 0.08em;
+  vertical-align: -0.2em;
+}
+
+.notes-html .footnotes {
+  @apply mt-12 border-t border-line-soft pt-4 text-token-sm text-ink-muted;
+}
+
+.notes-html .footnotes ol {
+  @apply pl-6;
+}

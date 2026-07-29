@@ -1,6 +1,9 @@
 node_modules/
 dist/
+.ssr/
 .astro/
 .notes-snapshot/
 public/notes-assets/
+public/phenom-ring.svg
+src/data/generated/
 .DS_Store

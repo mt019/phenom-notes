@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, relative, resolve, sep } from 'node:path';
+import { renderMarkdown } from './render-markdown.mjs';
 
 const root = resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot');
 const manifestPath = resolve(root, 'manifest.json');
@@ -66,4 +67,33 @@ if (existsSync(sourceAssets)) {
   mkdirSync(dirname(targetAssets), { recursive: true });
   cpSync(sourceAssets, targetAssets, { recursive: true });
 }
+
+const sharedIcon = resolve('node_modules', '@phenomcanvas', 'ui', 'assets', 'phenom-ring.svg');
+const iconBytes = readFileSync(sharedIcon);
+const iconSha256 = createHash('sha256').update(iconBytes).digest('hex');
+if (iconSha256 !== '20c617f5d4778b6632182f63c5bd93546c047cca533cf6f96b332359b086fb5e') {
+  throw new Error(`phenom-ring.svg SHA-256 不符：${iconSha256}`);
+}
+cpSync(sharedIcon, resolve('public', 'phenom-ring.svg'));
+
+const generated = resolve('src', 'data', 'generated');
+rmSync(generated, { recursive: true, force: true });
+mkdirSync(generated, { recursive: true });
+for (const name of ['notes.json', 'archive.json', 'stream.json']) {
+  cpSync(resolve(root, 'data', name), resolve(generated, name));
+}
+const content = {
+  archive: renderMarkdown(readFileSync(resolve(root, 'content', 'archive.mdx'), 'utf8')),
+  posts: Object.fromEntries(
+    notes.posts.map((post) => [
+      post.slug,
+      renderMarkdown(readFileSync(resolve(root, 'content', 'posts', `${post.slug}.mdx`), 'utf8')),
+    ]),
+  ),
+};
+writeFileSync(resolve(generated, 'content.json'), `${JSON.stringify(content)}\n`);
+writeFileSync(resolve(generated, 'snapshot.json'), `${JSON.stringify({
+  schemaVersion: manifest.schemaVersion,
+  source: manifest.source,
+})}\n`);
 console.log(`snapshot：${Object.keys(manifest.files).length} 檔，data ${manifest.source.commit.slice(0, 12)}，驗證通過`);

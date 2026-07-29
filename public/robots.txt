@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://notes.phenomcanvas.com/sitemap-index.xml
+Sitemap: https://phenomcanvas.com/notes/sitemap-index.xml

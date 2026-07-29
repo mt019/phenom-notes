@@ -9,7 +9,7 @@
 npm install
 npm run data:local
 npm run build
-npm run dev
+npm run preview
 ```
 
 `data:local` 預設讀同層 `../phenom-notes-data`，也可用 `NOTES_DATA_DIR=/path/to/phenom-notes-data` 指定。
@@ -19,6 +19,10 @@ Cloudflare 邊緣路由把 `/notes/*` 交給此站，repo 邊界不改變讀者�
 建置會逐檔驗證 snapshot manifest 的 SHA-256，並把精確 data commit 寫入
 `dist/deployment-manifest.json`。
 
+前端是原 Canvas Notes React UI 的等值移植；共用殼、閱讀控制、色票／紙紋 popup、
+字體與 design tokens 來自固定版本的 `@phenomcanvas/ui`。Vite 先產 client bundle，
+再對每條內容路由 SSR 成完整 HTML，最後才加 hydration 保留原互動。
+
 ## 路由
 
 - `/`：文章清單
@@ -26,4 +30,5 @@ Cloudflare 邊緣路由把 `/notes/*` 交給此站，repo 邊界不改變讀者�
 - `/archive`：沒有各自網址的舊帖合集
 - `/stream`：短記流
 
-舊的 `/notes/*` 在正式切換後由 Canvas 保留永久轉址；本倉不接管舊網址。
+Pages artifact 實際放在 `dist/notes/*`，公開網址與 canonical 都維持 `/notes/*`。
+根目錄只放入口轉址、404 與 deployment manifest。

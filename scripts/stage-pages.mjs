@@ -26,6 +26,14 @@ copyFileSync(
   join(notes, 'deployment-manifest.json'),
   join(dist, 'deployment-manifest.json'),
 );
+copyFileSync(
+  join(notes, '404.html'),
+  join(dist, '404.html'),
+);
+copyFileSync(
+  join(notes, 'phenom-ring.svg'),
+  join(dist, 'phenom-ring.svg'),
+);
 writeFileSync(
   join(dist, 'index.html'),
   '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=/notes/"><title>手記</title><a href="/notes/">前往手記</a>\n',
