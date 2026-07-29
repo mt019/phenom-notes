@@ -62,11 +62,13 @@ function renderFootnotes(source) {
 export function renderMarkdown(source) {
   const slugger = new GithubSlugger();
   const rendered = marked.parse(renderFootnotes(source), { gfm: true });
-  return rendered.replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (_, level, body) => {
-    const plain = body.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '').trim();
-    const id = slugger.slug(plain) || createHash('sha1').update(body).digest('hex').slice(0, 8);
-    return `<h${level} id="${id}">${body}</h${level}>`;
-  });
+  return rendered
+    .replaceAll('src="/notes-assets/', 'src="/notes/notes-assets/')
+    .replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (_, level, body) => {
+      const plain = body.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '').trim();
+      const id = slugger.slug(plain) || createHash('sha1').update(body).digest('hex').slice(0, 8);
+      return `<h${level} id="${id}">${body}</h${level}>`;
+    });
 }
 
 export function postBody(slug) {

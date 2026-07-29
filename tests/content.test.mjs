@@ -35,3 +35,8 @@ test('stream text is escaped before URLs become links', () => {
   assert.doesNotMatch(html, /<script>/);
   assert.match(html, /href="https:\/\/example.com"/);
 });
+
+test('snapshot images resolve inside the permanent Notes path', () => {
+  const html = renderMarkdown('![圖](/notes-assets/example.jpg)');
+  assert.match(html, /src="\/notes\/notes-assets\/example\.jpg"/);
+});
