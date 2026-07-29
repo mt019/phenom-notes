@@ -59,5 +59,14 @@
 
 ### 部署狀態
 
-- 本次只完成本機重拆、build 與視覺／互動驗收；未部署 preview，未修改正式
-  `phenomcanvas.com/notes`，也未觸碰司法中譯站或 `phenom-ops`。
+- Web `6ff89dd1e6defeb74fab54f29023a35578fcaab2` 與 data
+  `30966244ce3ae0f82493380853fc90786732df6f` 的 immutable preview：
+  `https://a9d4845a.phenom-notes.pages.dev`，主要 route、favicon 與 404 smoke 通過。
+- Preview 保存以兩個完整 SHA 命名的 `dist` artifact；production run
+  `30489086259` 直接 promotion，沒有重新 checkout data、install frontend 或 build，
+  22 秒完成（舊式完整 production 約 60–78 秒）。
+- `my-canvas-lab` commit `1909a101d2726d21994869592b1e30b8daba563b` 只增加 Vercel
+  external rewrite，把 `phenomcanvas.com/notes` 與 `/notes/*` 代理到獨立 Pages
+  `/notes/*`；瀏覽器網址與 canonical 不變。
+- Cutover 後 `https://phenomcanvas.com/notes/` 與 Pages production HTML SHA-256
+  完全相同；首頁、單篇、archive、stream 回 200，未知 slug 回 404。
