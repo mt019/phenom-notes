@@ -23,7 +23,7 @@ const manifest = {
   hostname: 'notes.phenomcanvas.com',
   webRepository: 'mt019/phenom-notes',
   webCommit,
-  dataRepository: 'mt019/notes-data',
+  dataRepository: 'mt019/phenom-notes-data',
   dataCommit: snapshot.source.commit,
   snapshotManifestSha256: createHash('sha256').update(snapshotManifestBytes).digest('hex'),
   generatedAt: new Date().toISOString(),

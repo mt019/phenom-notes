@@ -5,11 +5,11 @@ import { dirname, relative, resolve, sep } from 'node:path';
 const root = resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot');
 const manifestPath = resolve(root, 'manifest.json');
 if (!existsSync(manifestPath)) {
-  console.error('找不到 .notes-snapshot/manifest.json；先執行 npm run data:local，CI 則先執行 notes-data export:web。');
+  console.error('找不到 .notes-snapshot/manifest.json；先執行 npm run data:local，CI 則先執行 phenom-notes-data export:web。');
   process.exit(1);
 }
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-if (manifest.schemaVersion !== 1 || manifest.source?.repository !== 'mt019/notes-data') {
+if (manifest.schemaVersion !== 1 || manifest.source?.repository !== 'mt019/phenom-notes-data') {
   throw new Error('不支援的 Notes snapshot 契約');
 }
 if (!/^[0-9a-f]{40}$/.test(manifest.source?.commit ?? '') || manifest.source?.dirty) {
@@ -17,7 +17,7 @@ if (!/^[0-9a-f]{40}$/.test(manifest.source?.commit ?? '') || manifest.source?.di
 }
 const lock = JSON.parse(readFileSync(resolve('data.lock.json'), 'utf8'));
 const expectedDataCommit = process.env.EXPECTED_DATA_COMMIT || lock.commit;
-if (lock.schemaVersion !== 1 || lock.repository !== 'mt019/notes-data' || !/^[0-9a-f]{40}$/.test(expectedDataCommit ?? '')) {
+if (lock.schemaVersion !== 1 || lock.repository !== 'mt019/phenom-notes-data' || !/^[0-9a-f]{40}$/.test(expectedDataCommit ?? '')) {
   throw new Error('data.lock.json／EXPECTED_DATA_COMMIT 格式錯誤');
 }
 if (manifest.source.commit !== expectedDataCommit) {
