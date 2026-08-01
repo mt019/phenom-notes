@@ -1,5 +1,18 @@
 # Engineering Log
 
+## 2026-08-01 — 短記更新直接進 Pages
+
+- 正式資料現在從 `phenom-notes-data` dispatch 到 `phenom-ops`。Canvas 的 Vercel workflow
+  不再 clone 私有內容，也不用為了一則短記重建整站。
+- `phenom-ops` 固定當下 `phenom-notes@main` 與事件傳入的完整 data SHA；build 必須設定
+  `EXPECTED_DATA_COMMIT` 且通過 clean snapshot、逐檔 SHA、前端測試與靜態 artifact 驗證。
+- 資料事件會產生一個 immutable preview。remote smoke 過關後，同一份 artifact 直接送到
+  Cloudflare Pages `main`；production 不再 checkout，也不再 build 第二次。
+- 首次自動發布：web `2c4dd65454ab0a87b3deb8e624088c86a2b74db1`、data
+  `e1ea1bbc3c8b79f65beb45f0436a7a20df3c4a29`、run `30696570015`；公開
+  `https://phenomcanvas.com/notes/stream/` 與 Pages production 均顯示 37 則，最新 18:31
+  「scandal」，HTML 大小同為 43,115 bytes。
+
 ## 2026-07-30 — Notes 重新拆站：保留原 Canvas UI
 
 ### 決策
