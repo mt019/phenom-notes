@@ -3,6 +3,9 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const dist = resolve('dist');
+const notesFontPath = join(dist, 'fonts', 'HuiwenMincho-notes-subset.woff2');
+if (!existsSync(notesFontPath)) throw new Error('缺少手記用匯文明朝子集');
+if (statSync(notesFontPath).size > 2 * 1024 * 1024) throw new Error('手記用匯文明朝子集超過 2 MiB');
 const icon = readFileSync(join(dist, 'phenom-ring.svg'));
 if (createHash('sha256').update(icon).digest('hex') !== '20c617f5d4778b6632182f63c5bd93546c047cca533cf6f96b332359b086fb5e') {
   throw new Error('共用 phenom-ring.svg SHA-256 不符');
@@ -21,6 +24,9 @@ for (const route of routes) {
   }
   if (!html.includes('application/ld+json')) throw new Error(`缺少 JSON-LD：${route}`);
   if (!html.includes('<link rel="icon" href="/phenom-ring.svg"')) throw new Error(`缺少共用 favicon：${route}`);
+  if (!html.includes('rel="preload" href="/notes/fonts/HuiwenMincho-notes-subset.woff2"')) {
+    throw new Error(`缺少匯文明朝預載：${route}`);
+  }
 }
 const home = readFileSync(join(dist, 'index.html'), 'utf8');
 for (const post of notes.posts) {

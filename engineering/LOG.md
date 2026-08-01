@@ -83,3 +83,16 @@
   `/notes/*`；瀏覽器網址與 canonical 不變。
 - Cutover 後 `https://phenomcanvas.com/notes/` 與 Pages production HTML SHA-256
   完全相同；首頁、單篇、archive、stream 回 200，未知 slug 回 404。
+## 2026-08-01 — 匯文明朝不要讓讀者等四十秒
+
+新站雖然沿用 Canvas 的 `--font-body`，首屏卻沒有預載中文字體。共用 UI 裡那份匯文明朝
+又有 8.1 MB；從 Pages 第一次下載實測約 40 秒，這段時間瀏覽器只能先顯示替代字體。
+
+現在從同一份匯文明朝裁出手記專用子集，保留目前介面、文章、短記和共用元件用到的字，
+檔案降到 1.8 MB。Vite 在打包共用 UI 時直接把原字檔換成這份子集，HTML 也會預載它，
+不會先啟動完整字檔下載。build validator 會檢查每條靜態路由都有 preload、字檔存在且
+不超過 2 MiB。
+
+本機 Chromium 在 `/notes/stream/` 驗證：`document.fonts.check()` 通過，正文 computed
+font-family 首選仍是 `Huiwen Mincho`；網路只取 1,789,460-byte 的站內子集，沒有再抓
+8,131,032-byte 的完整字檔。
