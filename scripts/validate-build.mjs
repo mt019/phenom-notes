@@ -27,6 +27,9 @@ for (const route of routes) {
   if (!html.includes('rel="preload" href="/notes/fonts/HuiwenMincho-notes-subset.woff2"')) {
     throw new Error(`缺少匯文明朝預載：${route}`);
   }
+  if (route !== '/' && !/aria-label="回手記"[^>]*href="\/notes\/?"/.test(html)) {
+    throw new Error(`內頁眉標沒有回手記：${route}`);
+  }
 }
 const home = readFileSync(join(dist, 'index.html'), 'utf8');
 for (const post of notes.posts) {

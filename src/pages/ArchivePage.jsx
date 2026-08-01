@@ -5,7 +5,7 @@ import {
 } from '@phenomcanvas/ui';
 import archive from '../data/generated/archive.json';
 import content from '../data/generated/content.json';
-import { CANVAS_HOME, CANVAS_INDEX } from '../config.js';
+import { CANVAS_HOME, CANVAS_INDEX, NOTES_HOME } from '../config.js';
 import { HtmlProse, postsNav } from './shared.jsx';
 
 export default function ArchivePage() {
@@ -25,6 +25,7 @@ export default function ArchivePage() {
       <ArticleLayout
         title="舊帖"
         eyebrow="手記"
+        eyebrowBack={NOTES_HOME}
         summary={`${archive.dateRange.from.slice(0, 4)} 到 ${archive.dateRange.to.slice(0, 4)} 年寫在 Matters 與一個已經關掉的個人站上的短記，多半只有一兩行，最短的一則六個字。它們短到撐不起自己的一頁，所以收在這裡，按年份排，從最早的一則讀下來。正文與當年一字不改。`}
         meta={(
           <p className="mt-5 border-y border-line-soft py-3 text-token-xs leading-relaxed text-ink-faint">

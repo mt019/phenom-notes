@@ -4,7 +4,7 @@ import {
   useFontScale,
 } from '@phenomcanvas/ui';
 import stream from '../data/generated/stream.json';
-import { CANVAS_HOME, CANVAS_INDEX } from '../config.js';
+import { CANVAS_HOME, CANVAS_INDEX, NOTES_HOME } from '../config.js';
 import { postsNav } from './shared.jsx';
 
 export default function StreamPage() {
@@ -24,6 +24,7 @@ export default function StreamPage() {
       <ArticleLayout
         title="短記"
         eyebrow="手記"
+        eyebrowBack={NOTES_HOME}
         summary="一句話一則，說的當下就記下來。每則標的時刻是按下送出的那一刻，所以連跟伺服器收到的那幾秒差距都留著。不成篇，也不修飾。"
         meta={(
           <p className="mt-5 border-y border-line-soft py-3 text-token-xs leading-relaxed text-ink-faint">

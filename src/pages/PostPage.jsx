@@ -7,7 +7,7 @@ import {
 } from '@phenomcanvas/ui';
 import notes from '../data/generated/notes.json';
 import content from '../data/generated/content.json';
-import { CANVAS_HOME, CANVAS_INDEX } from '../config.js';
+import { CANVAS_HOME, CANVAS_INDEX, NOTES_HOME } from '../config.js';
 import { ContentLink, HtmlProse, postsNav } from './shared.jsx';
 import NotFoundPage from './NotFoundPage.jsx';
 
@@ -36,6 +36,7 @@ export default function PostPage() {
       <ArticleLayout
         title={post.title}
         eyebrow="手記"
+        eyebrowBack={NOTES_HOME}
         summary={post.subtitle}
         meta={(
           <ArticleMeta

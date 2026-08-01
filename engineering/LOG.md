@@ -97,3 +97,10 @@
 本機 Chromium 在 `/notes/stream/` 驗證：`document.fonts.check()` 通過，正文 computed
 font-family 首選仍是 `Huiwen Mincho`；網路只取 1,789,460-byte 的站內子集，沒有再抓
 8,131,032-byte 的完整字檔。
+## 2026-08-01 — 補回內頁眉標的回手記按鈕
+
+短記、舊帖和單篇文章雖然都畫了「手記」眉標，`ArticleLayout` 卻沒有把共用
+`PageIdentity` 已支援的返回落點傳下去，結果只剩一行不能按的字。`phenom-ui v0.1.8`
+讓 ArticleLayout、PageShell、DashboardLayout 全部傳遞 `eyebrowBack`；三種 Notes 內頁一律
+連回 `/notes`，build validator 也會逐頁檢查
+`aria-label="回手記"` 與正確網址。
