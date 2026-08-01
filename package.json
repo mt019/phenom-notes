@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "data:local": "node scripts/export-local-data.mjs",
-    "prebuild": "node scripts/prepare-build.mjs",
+    "prebuild": "node scripts/prepare-build.mjs && node scripts/build-font-subset.mjs",
     "build": "vite build && vite build --ssr src/entry-server.jsx --outDir .ssr && node scripts/render-static.mjs && node scripts/write-deployment-manifest.mjs && node scripts/validate-build.mjs && node scripts/stage-pages.mjs",
     "dev": "node scripts/prepare-build.mjs && vite",
     "preview": "node scripts/serve-preview.mjs",
