@@ -1,7 +1,7 @@
 # 手記字體子集
 
 `HuiwenMincho-notes-subset.woff2` 是從 `@phenomcanvas/ui` v0.1.6 所附的
-`HuiwenMincho-subset.woff2` 再裁出的手記站專用子集。`npm run build` 每次都會從當次固定的
-資料 snapshot、手記前端與共用 UI 重建它，避免新文章出現子集沒有的字，也避免首頁為一套
-中文字體先下載 8.1 MB。原字體的來源與授權說明見 UI 套件的 `fonts/SOURCE-NOTES.md` 與
-`fonts/LICENSES.md`。
+`HuiwenMincho-subset.woff2` 再裁出的固定站用子集。它涵蓋現有手記、介面與共用 UI；少見缺字
+由同屬明體的 Chiron fallback 接手。固定檔案可長效快取，也避免每次內容部署都重裁字體，
+更不必在首頁先下載 8.1 MB。原字體的來源與授權說明見 UI 套件的 `fonts/SOURCE-NOTES.md`
+與 `fonts/LICENSES.md`。
