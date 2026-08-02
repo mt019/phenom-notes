@@ -1,0 +1,12 @@
+# 檔名帶內容雜湊的產物，內容永遠不會變，所以給一年加 immutable。
+# Cloudflare Pages 的預設是 public, max-age=14400, must-revalidate，等於每四小時要回頭
+# 問一次；而這些檔案換內容就會換檔名，問了也只會拿到同一份。
+# 出處：MDN 快取指南「Cache Busting」與「Avoiding revalidation」，讀書筆記在
+# phenom-ops/docs/ops-learning/notes/http-caching.md 第 2 條。
+#
+# 路徑帶 /notes 是因為 vite 的 base 是 /notes/。這個檔本身必須在部署目錄的根，而本站的
+# scripts/stage-pages.mjs 會把整個 dist 搬進 dist/notes，所以那支腳本另外把它搬回根層；
+# 少了那一步，這個檔會躺在 dist/notes/_headers，不會報錯，只是安靜地沒有作用。
+# phenom-ops 的 smoke-pages.mjs 有一條檢查在擋這件事。
+/notes/assets/*
+  Cache-Control: public, max-age=31536000, immutable
