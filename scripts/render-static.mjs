@@ -10,6 +10,9 @@ const template = (await readFile(path.join(dist, 'index.html'), 'utf8'))
 const notes = JSON.parse(await readFile(path.join(root, 'src/data/generated/notes.json'), 'utf8'));
 const archive = JSON.parse(await readFile(path.join(root, 'src/data/generated/archive.json'), 'utf8'));
 const stream = JSON.parse(await readFile(path.join(root, 'src/data/generated/stream.json'), 'utf8'));
+const inventory = JSON.parse(await readFile(path.join(root, 'src/data/generated/inventory.json'), 'utf8'));
+const timeline = JSON.parse(await readFile(path.join(root, 'src/data/generated/timeline.json'), 'utf8'));
+const songs = JSON.parse(await readFile(path.join(root, 'src/data/generated/songs.json'), 'utf8'));
 const { render } = await import(pathToFileURL(path.join(root, '.ssr/entry-server.js')));
 const canonicalBase = 'https://phenomcanvas.com/notes';
 
@@ -39,6 +42,32 @@ const pages = [
     keywords: ['短記', '微網誌', '隨手筆記', '日常紀錄', '時間戳', '手記'],
     type: 'CollectionPage',
     temporalCoverage: `${stream.dateRange.from.slice(0, 10)}/${stream.dateRange.to.slice(0, 10)}`,
+  },
+  {
+    route: '/inventory',
+    file: 'inventory/index.html',
+    title: '器物｜手記｜Phenom Canvas Lab',
+    description: `手上的 ${inventory.stats.count} 件設備，分在 ${inventory.categories.length} 類；附規格、入手時間與價格，實付和市場參考價分開標示。`,
+    keywords: ['器物清單', '設備清單', '個人資產', '攝影器材', '儲存裝置', '規格', '手記'],
+    type: 'CollectionPage',
+  },
+  {
+    route: '/timeline',
+    file: 'timeline/index.html',
+    title: '年表｜手記｜Phenom Canvas Lab',
+    description: `按日期排的 ${timeline.stats.count} 則事件，從 ${timeline.stats.dateRange?.from ?? ''} 到 ${timeline.stats.dateRange?.to ?? ''}：買了什麼、考了什麼、寫了什麼、決定了什麼。`,
+    keywords: ['年表', '個人時間軸', '大事紀', '編年', '手記'],
+    type: 'CollectionPage',
+    temporalCoverage: timeline.stats.dateRange ? `${timeline.stats.dateRange.from}/${timeline.stats.dateRange.to}` : undefined,
+  },
+  {
+    route: '/songs',
+    file: 'songs/index.html',
+    title: '歌單｜手記｜Phenom Canvas Lab',
+    description: `聲樂課唱過的 ${songs.stats.count} 首歌，分${songs.languages.map((entry) => entry.label).join('、')}四組，一首一列：原唱、發行年份、唱的日期。`,
+    keywords: ['歌單', '聲樂課', '台語歌', '粵語歌', '國語歌', '原唱', '手記'],
+    type: 'CollectionPage',
+    temporalCoverage: songs.stats.dateRange ? `${songs.stats.dateRange.from}/${songs.stats.dateRange.to}` : undefined,
   },
   ...notes.posts.map((post) => ({
     route: `/${post.slug}`,

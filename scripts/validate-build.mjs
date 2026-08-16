@@ -11,7 +11,7 @@ if (createHash('sha256').update(icon).digest('hex') !== '20c617f5d4778b6632182f6
   throw new Error('共用 phenom-ring.svg SHA-256 不符');
 }
 const notes = JSON.parse(readFileSync(resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot', 'data', 'notes.json'), 'utf8'));
-const routes = ['/', '/archive', '/stream', ...notes.posts.map((post) => `/${post.slug}`)];
+const routes = ['/', '/archive', '/stream', '/inventory', '/timeline', '/songs', ...notes.posts.map((post) => `/${post.slug}`)];
 const htmlFor = (route) => route === '/' ? join(dist, 'index.html') : join(dist, route.slice(1), 'index.html');
 for (const route of routes) {
   const path = htmlFor(route);
@@ -42,6 +42,33 @@ for (const post of notes.posts) {
   const marker = source.match(/[\p{Script=Han}]{8,}/u)?.[0];
   if (marker && !html.includes(marker)) throw new Error(`文章正文標記未進 HTML：${post.slug}`);
 }
+// 器物清單與年表另外送一份可直接抓的 JSON。順便在這裡再擋一次不該公開的欄位——
+// 資料倉那道閘管的是產物，這道管的是真的被部署出去的檔案。
+const SECRET_KEYS = ['"private"', '"visibility"', '"serial"', '"invoice"', '"warranty"', '"seller"', '"token"'];
+for (const name of ['inventory.json', 'timeline.json', 'songs.json']) {
+  const path = join(dist, name);
+  if (!existsSync(path)) throw new Error(`缺少可直接抓的資料檔：/notes/${name}`);
+  const text = readFileSync(path, 'utf8');
+  JSON.parse(text);
+  for (const key of SECRET_KEYS) {
+    if (text.includes(key)) throw new Error(`${name} 帶著不該公開的欄位 ${key}`);
+  }
+}
+const inventoryJson = JSON.parse(readFileSync(join(dist, 'inventory.json'), 'utf8'));
+if (inventoryJson.items.some((item) => !item.price?.label)) throw new Error('器物公開資料有缺價格標示的項目');
+
+// 器物與年表兩頁的正文不准出現工程作業語言。它們的內容是資料算出來的，最容易順手寫上
+// 「這一頁與某某 .json 讀的是同一份資料」「留在資料倉裡」這種生產端的話——那是寫給我自己
+// 看的，讀者不需要，2026-08-06 使用者當場退回過一次。文章頁不掃：〈三十次下載〉那類
+// 工程日記本來就在講 npm 與 GitHub，那是題材。
+const PRODUCTION_TALK = ['資料倉', '.json', 'snapshot', 'commit', '產物', '欄位', '自動接進來', '建置'];
+for (const route of ['/inventory', '/timeline', '/songs']) {
+  const text = readFileSync(htmlFor(route), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '');
+  for (const phrase of PRODUCTION_TALK) {
+    if (text.includes(phrase)) throw new Error(`${route} 的正文有工程作業語言「${phrase}」`);
+  }
+}
+
 const sitemap = readFileSync(join(dist, 'sitemap-0.xml'), 'utf8');
 const sitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]).sort();
 const expectedUrls = routes.map((route) => `https://phenomcanvas.com/notes${route === '/' ? '/' : route}`).sort();

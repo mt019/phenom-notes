@@ -13,7 +13,8 @@ const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 if (manifest.schemaVersion !== 1 || manifest.source?.repository !== 'mt019/phenom-notes-data') {
   throw new Error('不支援的 Notes snapshot 契約');
 }
-if (!/^[0-9a-f]{40}$/.test(manifest.source?.commit ?? '') || manifest.source?.dirty) {
+const allowDirtyLocal = process.env.NOTES_ALLOW_DIRTY === '1';
+if (!/^[0-9a-f]{40}$/.test(manifest.source?.commit ?? '') || (manifest.source?.dirty && !allowDirtyLocal)) {
   throw new Error('建置只接受 clean 且帶完整 data commit 的 Notes snapshot');
 }
 const lock = JSON.parse(readFileSync(resolve('data.lock.json'), 'utf8'));
@@ -52,7 +53,7 @@ const notes = JSON.parse(readFileSync(resolve(root, 'data', 'notes.json'), 'utf8
 const slugs = new Set();
 for (const post of notes.posts ?? []) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug ?? '')) throw new Error(`slug 格式錯誤：${post.slug}`);
-  if (['archive', 'stream', '404'].includes(post.slug)) throw new Error(`slug 與保留路由衝突：${post.slug}`);
+  if (['archive', 'stream', 'inventory', 'timeline', 'songs', '404'].includes(post.slug)) throw new Error(`slug 與保留路由衝突：${post.slug}`);
   if (slugs.has(post.slug)) throw new Error(`slug 重複：${post.slug}`);
   slugs.add(post.slug);
   if (post.route !== `/${post.slug}` || post.legacyRoute !== `/notes/${post.slug}`) {
@@ -79,8 +80,13 @@ cpSync(sharedIcon, resolve('public', 'phenom-ring.svg'));
 const generated = resolve('src', 'data', 'generated');
 rmSync(generated, { recursive: true, force: true });
 mkdirSync(generated, { recursive: true });
-for (const name of ['notes.json', 'archive.json', 'stream.json']) {
+for (const name of ['notes.json', 'archive.json', 'stream.json', 'inventory.json', 'timeline.json', 'songs.json']) {
   cpSync(resolve(root, 'data', name), resolve(generated, name));
+}
+// 器物清單與年表另外放一份到 public/，讓 agent 直接抓 /notes/inventory.json、/notes/timeline.json，
+// 不必解析頁面。內容與頁面渲染的完全同一份，私有欄位在資料倉那一步就沒有寫出來。
+for (const name of ['inventory.json', 'timeline.json', 'songs.json']) {
+  cpSync(resolve(root, 'data', name), resolve('public', name));
 }
 const content = {
   archive: renderMarkdown(readFileSync(resolve(root, 'content', 'archive.mdx'), 'utf8')),

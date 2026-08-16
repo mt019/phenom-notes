@@ -5,5 +5,8 @@ dist/
 .notes-snapshot/
 public/notes-assets/
 public/phenom-ring.svg
+public/inventory.json
+public/timeline.json
+public/songs.json
 src/data/generated/
 .DS_Store

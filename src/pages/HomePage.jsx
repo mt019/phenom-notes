@@ -14,6 +14,9 @@ import {
 import notes from '../data/generated/notes.json';
 import archive from '../data/generated/archive.json';
 import stream from '../data/generated/stream.json';
+import inventory from '../data/generated/inventory.json';
+import timeline from '../data/generated/timeline.json';
+import songs from '../data/generated/songs.json';
 import { CANVAS_HOME, CANVAS_INDEX } from '../config.js';
 
 export default function HomePage() {
@@ -102,6 +105,18 @@ export default function HomePage() {
           <SectionLink to="/archive" title="舊帖" count={archive.count}>
             {archive.dateRange.from.slice(0, 4)}–{archive.dateRange.to.slice(0, 4)} 年的短記，多半只有一兩行，
             最短的一則六個字。收在同一頁上，按年份排。
+          </SectionLink>
+          <SectionLink to="/timeline" title="年表" count={timeline.stats.count}>
+            按日期排的事件：買了什麼、考了什麼、寫了什麼、決定了什麼。
+            {timeline.stats.dateRange
+              ? `目前從 ${timeline.stats.dateRange.from} 到 ${timeline.stats.dateRange.to}。`
+              : null}
+          </SectionLink>
+          <SectionLink to="/inventory" title="器物" count={inventory.stats.count}>
+            手上的電腦、相機、儲存與線材，一件一列，附規格與入手時間。
+          </SectionLink>
+          <SectionLink to="/songs" title="歌單" count={songs.stats.count}>
+            聲樂課唱過的歌，分台語、國語、粵語、英文四組，附原唱與唱的日期。
           </SectionLink>
         </div>
 
