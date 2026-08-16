@@ -13,19 +13,16 @@ import { CANVAS_HOME, CANVAS_INDEX, NOTES_HOME } from '../config.js';
 
 const STATUS_LABEL = { partial: '只有一小段', planned: '還沒' };
 
-// 語言的分類色用設計系統的分類槽（--cat-1 起，順序照資料層的語言表，固定不重排）。
-// 這幾槽刻意偏灰，辨識不全靠顏色：月帶裡的點按語言分組、組間留空隙，位置本身就載明語言。
-const catColor = (index) => `var(--cat-${index + 1}-tx)`;
+// 語言的分類色用設計系統的資料 mark 槽（--viz-1 起，順序照資料層的語言表，固定不重排）。
+// badge 的 --cat 灰調不給點陣用——點沒有標籤可靠，規則寫在 tokens.css 的 Layer 1c 註解。
+const catColor = (index) => `var(--viz-${index + 1})`;
 
 export default function SongsPage() {
   const { languages, songs, stats } = songsData;
   const [scale, setScale] = useFontScale();
   const [language, setLanguage] = useTabParam('language', 'all');
+  const [view, setView] = useTabParam('view', 'lang');
 
-  const languageIndex = useMemo(
-    () => new Map(languages.map((entry, index) => [entry.id, index])),
-    [languages],
-  );
   const shown = useMemo(
     () => (language === 'all' ? songs : songs.filter((song) => song.language === language)),
     [songs, language],
@@ -52,10 +49,7 @@ export default function SongsPage() {
     const out = [];
     let cursor = keys[0];
     while (cursor <= keys.at(-1)) {
-      const list = (byMonth.get(cursor) ?? []).sort(
-        (a, b) => languageIndex.get(a.song.language) - languageIndex.get(b.song.language)
-          || a.date.localeCompare(b.date),
-      );
+      const list = (byMonth.get(cursor) ?? []).sort((a, b) => a.date.localeCompare(b.date));
       out.push({ month: cursor, list });
       const [year, month] = cursor.split('-').map(Number);
       cursor = month === 12
@@ -63,7 +57,7 @@ export default function SongsPage() {
         : `${year}-${String(month + 1).padStart(2, '0')}`;
     }
     return out;
-  }, [shown, languageIndex]);
+  }, [shown]);
 
   return (
     <div id="main-content">
@@ -135,6 +129,20 @@ export default function SongsPage() {
                   {entry.label}
                 </span>
               ))}
+              <span className="ml-auto inline-flex items-center gap-3">
+                {[['lang', '分語言'], ['time', '時間序']].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setView(value, { scroll: 'preserve' })}
+                    className={view === value
+                      ? 'text-ink'
+                      : 'text-ink-faint underline decoration-line underline-offset-4 transition-colors duration-fast hover:text-accent'}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </span>
             </figcaption>
             <div className="border-y border-line-soft py-2">
               {months.map(({ month, list }) => (
@@ -143,7 +151,21 @@ export default function SongsPage() {
                     {month}
                   </span>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    {languages.map((entry, index) => {
+                    {view === 'time' ? (
+                      <span className="inline-flex flex-wrap items-center gap-1.5">
+                        {list.map((event) => {
+                          const index = languages.findIndex((entry) => entry.id === event.song.language);
+                          return (
+                            <span
+                              key={`${event.song.id}-${event.date}`}
+                              title={`${event.date}　${event.song.title}（${languages[index].label}）`}
+                              className="inline-block h-2.5 w-2.5 rounded-full"
+                              style={{ backgroundColor: catColor(index) }}
+                            />
+                          );
+                        })}
+                      </span>
+                    ) : languages.map((entry, index) => {
                       const dots = list.filter((event) => event.song.language === entry.id);
                       if (dots.length === 0) return null;
                       return (
