@@ -21,10 +21,20 @@ export default function SongsPage() {
   const { languages, songs, stats } = songsData;
   const [scale, setScale] = useFontScale();
   const [language, setLanguage] = useTabParam('language', 'all');
+  const [grouping, setGrouping] = useTabParam('group', 'lang');
 
   const shown = useMemo(
     () => (language === 'all' ? songs : songs.filter((song) => song.language === language)),
     [songs, language],
+  );
+  const languageIndex = useMemo(
+    () => new Map(languages.map((entry, index) => [entry.id, index])),
+    [languages],
+  );
+  // 依日期的攤平清單：唱過的按第一次唱的日期排，還沒唱的排最後。
+  const flat = useMemo(
+    () => [...shown].sort((a, b) => (a.dates[0] ?? '9999').localeCompare(b.dates[0] ?? '9999') || a.id.localeCompare(b.id)),
+    [shown],
   );
   const groups = useMemo(
     () => languages
@@ -75,7 +85,7 @@ export default function SongsPage() {
         title="歌單"
         summary="聲樂課唱過的歌，一首一列：原唱、發行年份、唱的日期。"
         tocLabel="語言"
-        refreshKey={language}
+        refreshKey={`${language}-${grouping}`}
       >
         <p className="mb-8 border-y border-line-soft py-3 text-token-sm leading-relaxed text-ink-muted">
           <span className="font-accent tabular-nums">{stats.count}</span> 首，唱過{' '}
@@ -112,6 +122,20 @@ export default function SongsPage() {
               清除
             </button>
           )}
+          <span className="ml-auto inline-flex items-center gap-3 text-token-sm">
+            {[['lang', '分語言'], ['date', '依日期']].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setGrouping(value, { scroll: 'preserve' })}
+                className={grouping === value
+                  ? 'text-ink'
+                  : 'text-ink-faint underline decoration-line underline-offset-4 transition-colors duration-fast hover:text-accent'}
+              >
+                {label}
+              </button>
+            ))}
+          </span>
         </FilterBar>
 
         {months.length > 0 ? (
@@ -159,14 +183,22 @@ export default function SongsPage() {
           </figure>
         ) : null}
 
-        {groups.map((group, index) => (
+        {grouping === 'date' ? (
+          <div className="mt-2">
+            {flat.map((song) => (
+              <SongRow key={song.id} song={song} colorIndex={languageIndex.get(song.language)} />
+            ))}
+          </div>
+        ) : groups.map((group, index) => (
           <section key={group.id} className={index === 0 ? '' : 'mt-12 border-t border-line pt-8'}>
             <h2 id={`language-${group.id}`} className="font-display text-token-lg text-ink">
               {group.label}
               <span className="ml-2 font-accent text-token-sm tabular-nums text-ink-faint">{group.list.length}</span>
             </h2>
             <div className="mt-2">
-              {group.list.map((song) => <SongRow key={song.id} song={song} />)}
+              {group.list.map((song) => (
+                <SongRow key={song.id} song={song} colorIndex={languageIndex.get(song.language)} />
+              ))}
             </div>
           </section>
         ))}
@@ -176,7 +208,7 @@ export default function SongsPage() {
   );
 }
 
-function SongRow({ song }) {
+function SongRow({ song, colorIndex }) {
   return (
     <article className="-mx-3 flex gap-4 border-b border-line-soft px-3 py-4 last:border-b-0">
       <span className="flex w-[10ch] shrink-0 flex-col gap-0.5 whitespace-nowrap pt-0.5 font-accent text-token-xs tabular-nums text-ink-faint">
@@ -184,6 +216,11 @@ function SongRow({ song }) {
       </span>
       <div className="min-w-0">
         <h3 id={`song-${song.id}`} className="font-display text-token-base text-ink">
+          <span
+            aria-hidden="true"
+            className="mr-2 inline-block h-2.5 w-2.5 rounded-[3px] align-baseline"
+            style={{ backgroundColor: catColor(colorIndex) }}
+          />
           {song.title}
           {STATUS_LABEL[song.status] ? (
             <span className="ml-2 text-token-xs text-ink-faint">{STATUS_LABEL[song.status]}</span>
