@@ -13,9 +13,9 @@ import { CANVAS_HOME, CANVAS_INDEX, NOTES_HOME } from '../config.js';
 
 const STATUS_LABEL = { partial: '只有一小段', planned: '還沒' };
 
-// 語言的分類色用設計系統的資料 mark 槽（--viz-1 起，順序照資料層的語言表，固定不重排）。
-// badge 的 --cat 灰調不給點陣用——點沒有標籤可靠，規則寫在 tokens.css 的 Layer 1c 註解。
-const catColor = (index) => `var(--viz-${index + 1})`;
+// 語言的分類色用設計系統的 --cat 色調（順序照資料層的語言表，固定不重排），
+// 配圖例使用；2026-08-16 站主點名這組（甲），並否決 mark 上標字與較鮮豔的替代組。
+const catColor = (index) => `var(--cat-${index + 1}-tx)`;
 
 export default function SongsPage() {
   const { languages, songs, stats } = songsData;
