@@ -13,15 +13,14 @@ import { CANVAS_HOME, CANVAS_INDEX, NOTES_HOME } from '../config.js';
 
 const STATUS_LABEL = { partial: '只有一小段', planned: '還沒' };
 
-// 語言的分類色用設計系統的 --cat 色調（順序照資料層的語言表，固定不重排），
-// 配圖例使用；2026-08-16 站主點名這組（甲），並否決 mark 上標字與較鮮豔的替代組。
-const catColor = (index) => `var(--cat-${index + 1}-tx)`;
+// 語言的分類色用設計系統的分類 mark 槽（--mark-1 起，順序照資料層的語言表，
+// 固定不重排），配圖例、mark 上不標字；紀律正本在 phenom-ui docs/DESIGN.md。
+const catColor = (index) => `var(--mark-${index + 1})`;
 
 export default function SongsPage() {
   const { languages, songs, stats } = songsData;
   const [scale, setScale] = useFontScale();
   const [language, setLanguage] = useTabParam('language', 'all');
-  const [view, setView] = useTabParam('view', 'lang');
 
   const shown = useMemo(
     () => (language === 'all' ? songs : songs.filter((song) => song.language === language)),
@@ -129,20 +128,6 @@ export default function SongsPage() {
                   {entry.label}
                 </span>
               ))}
-              <span className="ml-auto inline-flex items-center gap-3">
-                {[['lang', '分語言'], ['time', '時間序']].map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setView(value, { scroll: 'preserve' })}
-                    className={view === value
-                      ? 'text-ink'
-                      : 'text-ink-faint underline decoration-line underline-offset-4 transition-colors duration-fast hover:text-accent'}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </span>
             </figcaption>
             <div className="border-y border-line-soft py-2">
               {months.map(({ month, list }) => (
@@ -151,21 +136,7 @@ export default function SongsPage() {
                     {month}
                   </span>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    {view === 'time' ? (
-                      <span className="inline-flex flex-wrap items-center gap-1.5">
-                        {list.map((event) => {
-                          const index = languages.findIndex((entry) => entry.id === event.song.language);
-                          return (
-                            <span
-                              key={`${event.song.id}-${event.date}`}
-                              title={`${event.date}　${event.song.title}（${languages[index].label}）`}
-                              className="inline-block h-2.5 w-2.5 rounded-full"
-                              style={{ backgroundColor: catColor(index) }}
-                            />
-                          );
-                        })}
-                      </span>
-                    ) : languages.map((entry, index) => {
+                    {languages.map((entry, index) => {
                       const dots = list.filter((event) => event.song.language === entry.id);
                       if (dots.length === 0) return null;
                       return (

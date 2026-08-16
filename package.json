@@ -15,7 +15,7 @@
     "node": ">=22 <23"
   },
   "dependencies": {
-    "@phenomcanvas/ui": "https://github.com/mt019/phenom-ui/archive/refs/tags/v0.1.23.tar.gz",
+    "@phenomcanvas/ui": "https://github.com/mt019/phenom-ui/archive/refs/tags/v0.1.25.tar.gz",
     "@mdx-js/react": "3.1.1",
     "github-slugger": "2.0.0",
     "katex": "0.17.0",
