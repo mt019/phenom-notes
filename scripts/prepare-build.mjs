@@ -49,15 +49,27 @@ if (JSON.stringify(actualFiles.sort()) !== JSON.stringify(declaredFiles)) {
   throw new Error('snapshot 實際檔案集合與 manifest 不一致');
 }
 
+// 保留路由：文章走 /:slug 這個 catch-all，所以任何一個非文章的頁面路徑都不能被文章的
+// slug 佔走。新增一條路由就要加進這裡，漏加的症狀是那一頁被某篇文章蓋掉。
+const RESERVED = ['archive', 'stream', 'inventory', 'timeline', 'songs', 'kb', 'all', '404'];
+
 const notes = JSON.parse(readFileSync(resolve(root, 'data', 'notes.json'), 'utf8'));
+const kb = JSON.parse(readFileSync(resolve(root, 'data', 'kb.json'), 'utf8'));
 const slugs = new Set();
 for (const post of notes.posts ?? []) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug ?? '')) throw new Error(`slug 格式錯誤：${post.slug}`);
-  if (['archive', 'stream', 'inventory', 'timeline', 'songs', '404'].includes(post.slug)) throw new Error(`slug 與保留路由衝突：${post.slug}`);
+  if (RESERVED.includes(post.slug)) throw new Error(`slug 與保留路由衝突：${post.slug}`);
   if (slugs.has(post.slug)) throw new Error(`slug 重複：${post.slug}`);
   slugs.add(post.slug);
   if (post.route !== `/${post.slug}` || post.legacyRoute !== `/notes/${post.slug}`) {
     throw new Error(`新舊路由契約錯誤：${post.slug}`);
+  }
+}
+
+for (const entry of kb.entries ?? []) {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(entry.slug ?? '')) throw new Error(`kb slug 格式錯誤：${entry.slug}`);
+  if (entry.route !== `/kb/${entry.slug}` || entry.legacyRoute !== `/notes/kb/${entry.slug}`) {
+    throw new Error(`kb 新舊路由契約錯誤：${entry.slug}`);
   }
 }
 
@@ -80,7 +92,7 @@ cpSync(sharedIcon, resolve('public', 'phenom-ring.svg'));
 const generated = resolve('src', 'data', 'generated');
 rmSync(generated, { recursive: true, force: true });
 mkdirSync(generated, { recursive: true });
-for (const name of ['notes.json', 'archive.json', 'stream.json', 'inventory.json', 'timeline.json', 'songs.json']) {
+for (const name of ['notes.json', 'kb.json', 'all.json', 'archive.json', 'stream.json', 'inventory.json', 'timeline.json', 'songs.json']) {
   cpSync(resolve(root, 'data', name), resolve(generated, name));
 }
 // 器物清單與年表另外放一份到 public/，讓 agent 直接抓 /notes/inventory.json、/notes/timeline.json，
@@ -88,12 +100,20 @@ for (const name of ['notes.json', 'archive.json', 'stream.json', 'inventory.json
 for (const name of ['inventory.json', 'timeline.json', 'songs.json']) {
   cpSync(resolve(root, 'data', name), resolve('public', name));
 }
+// 註解 payload 隨 snapshot 一起來（資料倉的 data/notes.json → notes.json 的 annotations）。
+const annotations = notes.annotations ?? {};
 const content = {
-  archive: renderMarkdown(readFileSync(resolve(root, 'content', 'archive.mdx'), 'utf8')),
+  archive: renderMarkdown(readFileSync(resolve(root, 'content', 'archive.mdx'), 'utf8'), annotations),
   posts: Object.fromEntries(
     notes.posts.map((post) => [
       post.slug,
-      renderMarkdown(readFileSync(resolve(root, 'content', 'posts', `${post.slug}.mdx`), 'utf8')),
+      renderMarkdown(readFileSync(resolve(root, 'content', 'posts', `${post.slug}.mdx`), 'utf8'), annotations),
+    ]),
+  ),
+  kb: Object.fromEntries(
+    (kb.entries ?? []).map((entry) => [
+      entry.slug,
+      renderMarkdown(readFileSync(resolve(root, 'content', 'kb', `${entry.slug}.mdx`), 'utf8'), annotations),
     ]),
   ),
 };

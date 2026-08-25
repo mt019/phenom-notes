@@ -11,7 +11,12 @@ if (createHash('sha256').update(icon).digest('hex') !== '20c617f5d4778b6632182f6
   throw new Error('共用 phenom-ring.svg SHA-256 不符');
 }
 const notes = JSON.parse(readFileSync(resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot', 'data', 'notes.json'), 'utf8'));
-const routes = ['/', '/archive', '/stream', '/inventory', '/timeline', '/songs', ...notes.posts.map((post) => `/${post.slug}`)];
+const kb = JSON.parse(readFileSync(resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot', 'data', 'kb.json'), 'utf8'));
+const routes = [
+  '/', '/archive', '/stream', '/all', '/kb', '/inventory', '/timeline', '/songs',
+  ...kb.entries.map((entry) => `/kb/${entry.slug}`),
+  ...notes.posts.map((post) => `/${post.slug}`),
+];
 const htmlFor = (route) => route === '/' ? join(dist, 'index.html') : join(dist, route.slice(1), 'index.html');
 for (const route of routes) {
   const path = htmlFor(route);
@@ -27,10 +32,39 @@ for (const route of routes) {
   if (!html.includes('rel="preload" href="/notes/fonts/HuiwenMincho-notes-subset.woff2"')) {
     throw new Error(`缺少匯文明朝預載：${route}`);
   }
-  if (route !== '/' && !/aria-label="回手記"[^>]*href="\/notes\/?"/.test(html)) {
+  // 眉標按層級回上一層：條目頁回條目索引（索引自己再回手記），其餘內頁直接回手記。
+  // 每一層都要有，否則讀者從搜尋結果直接落在某一頁時走不出去。
+  if (route.startsWith('/kb/')) {
+    if (!/aria-label="回條目"[^>]*href="\/notes\/kb"/.test(html)) {
+      throw new Error(`條目頁眉標沒有回條目索引：${route}`);
+    }
+  } else if (route !== '/' && !/aria-label="回手記"[^>]*href="\/notes\/?"/.test(html)) {
     throw new Error(`內頁眉標沒有回手記：${route}`);
   }
 }
+// 條目頁與文章頁一樣要有建置時就轉好的正文；靠瀏覽器補的話，沒有 JS 的讀者與
+// 搜尋引擎拿到的是空殼。
+for (const entry of kb.entries) {
+  const html = readFileSync(htmlFor(`/kb/${entry.slug}`), 'utf8');
+  if (!html.includes('prose-scaled prose-body') || !html.includes('notes-html')) {
+    throw new Error(`條目沒有 build-time 正文：${entry.slug}`);
+  }
+  if (!html.includes(entry.id)) throw new Error(`條目頁沒有印出編號：${entry.slug}`);
+  if ((entry.sources ?? []).length > 0 && !html.includes('出處')) {
+    throw new Error(`條目頁沒有出處那一段：${entry.slug}`);
+  }
+}
+// 總覽要真的把三種都列出來。少了一類不會報錯，只會讓那一類在頁面上整批消失。
+const allHtml = readFileSync(htmlFor('/all'), 'utf8');
+const allData = JSON.parse(readFileSync(resolve(process.env.NOTES_SNAPSHOT_DIR || '.notes-snapshot', 'data', 'all.json'), 'utf8'));
+// 每一項的網址都要真的出現在頁面上。數字或標籤那種字串會隨版面改寫而漂掉，連結不會——
+// 而「某一類整批不見」正是這一頁最可能壞的方式。
+const missing = allData.items.filter((item) => !allHtml.includes(`href="/notes${item.route}"`));
+if (missing.length > 0) {
+  const sample = missing.slice(0, 3).map((item) => item.route).join('、');
+  throw new Error(`總覽漏了 ${missing.length} 項（例如 ${sample}）`);
+}
+
 const home = readFileSync(join(dist, 'index.html'), 'utf8');
 for (const post of notes.posts) {
   if (!home.includes(`href="/notes/${post.slug}"`)) throw new Error(`首頁缺少文章連結：${post.slug}`);

@@ -1,7 +1,8 @@
 export const CANONICAL_BASE = 'https://phenomcanvas.com/notes';
 export const CANVAS_HOME = { href: 'https://phenomcanvas.com/', label: '', title: '回 Phenom Canvas' };
-export const CANVAS_INDEX = 'https://phenomcanvas.com/all';
+export const CANVAS_INDEX = 'https://canvas.phenomcanvas.com/';
 export const NOTES_HOME = { href: '/', label: '手記' };
+export const KB_HOME = { href: '/kb', label: '條目' };
 
 export function relatedTarget(href) {
   if (/^https?:\/\//.test(href)) return { href, external: true };

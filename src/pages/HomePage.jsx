@@ -14,6 +14,8 @@ import {
 import notes from '../data/generated/notes.json';
 import archive from '../data/generated/archive.json';
 import stream from '../data/generated/stream.json';
+import kb from '../data/generated/kb.json';
+import all from '../data/generated/all.json';
 import inventory from '../data/generated/inventory.json';
 import timeline from '../data/generated/timeline.json';
 import songs from '../data/generated/songs.json';
@@ -102,6 +104,12 @@ export default function HomePage() {
         ) : null}
 
         <div className="mt-14 border-t border-line pt-2">
+          <SectionLink to="/kb" title="條目" count={kb.entries.length}>
+            查清楚一件事之後留下的條目，一則一個問題。有出處，會改，改了會記日期。
+          </SectionLink>
+          <SectionLink to="/all" title="全部" count={all.count}>
+            文章、條目與短記排在同一條時間軸上，按日期新到舊。要找「那件事寫在哪裡」就從這裡查。
+          </SectionLink>
           <SectionLink to="/archive" title="舊帖" count={archive.count}>
             {archive.dateRange.from.slice(0, 4)}–{archive.dateRange.to.slice(0, 4)} 年的短記，多半只有一兩行，
             最短的一則六個字。收在同一頁上，按年份排。

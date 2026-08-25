@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArticleNav, Prose } from '@phenomcanvas/ui';
+import { AnnotatedHtml, ArticleNav, Prose } from '@phenomcanvas/ui';
 import notes from '../data/generated/notes.json';
+import kb from '../data/generated/kb.json';
 import { relatedTarget } from '../config.js';
 
 export function postsNav(currentSlug) {
@@ -16,10 +17,25 @@ export function postsNav(currentSlug) {
   );
 }
 
-export function HtmlProse({ html, className = '' }) {
+// 條目的左欄按分類分組。分類的順序照 data/kb.json 寫的順序，空的分類 ArticleNav 自己會略過。
+export function kbNav(currentSlug) {
+  return (
+    <ArticleNav
+      topics={(kb.categories ?? []).map((item) => ({ id: item.label, label: item.label }))}
+      articles={(kb.entries ?? []).map((entry) => ({ ...entry, topic: entry.category }))}
+      currentSlug={currentSlug}
+      homeHref="/kb"
+      homeLabel="條目"
+    />
+  );
+}
+
+// 正文在建置時就轉成 HTML 了，註標由 render-markdown.mjs 寫成 <sup class="fn-ref">。
+// AnnotatedHtml 用事件委派把註標接上浮卡；沒有註的文章走同一條路，notes 是空陣列。
+export function HtmlProse({ html, notes: annotations = [], className = '' }) {
   return (
     <Prose>
-      <div className={`notes-html ${className}`} dangerouslySetInnerHTML={{ __html: html }} />
+      <AnnotatedHtml html={html} notes={annotations} className={`notes-html ${className}`} />
     </Prose>
   );
 }

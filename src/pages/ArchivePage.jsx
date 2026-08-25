@@ -45,7 +45,7 @@ export default function ArchivePage() {
         tocLevels={[2]}
         nav={postsNav()}
       >
-        <HtmlProse html={content.archive} />
+        <HtmlProse html={content.archive.html} notes={content.archive.notes} />
       </ArticleLayout>
     </main>
   );

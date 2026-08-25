@@ -13,6 +13,8 @@ const stream = JSON.parse(await readFile(path.join(root, 'src/data/generated/str
 const inventory = JSON.parse(await readFile(path.join(root, 'src/data/generated/inventory.json'), 'utf8'));
 const timeline = JSON.parse(await readFile(path.join(root, 'src/data/generated/timeline.json'), 'utf8'));
 const songs = JSON.parse(await readFile(path.join(root, 'src/data/generated/songs.json'), 'utf8'));
+const kb = JSON.parse(await readFile(path.join(root, 'src/data/generated/kb.json'), 'utf8'));
+const all = JSON.parse(await readFile(path.join(root, 'src/data/generated/all.json'), 'utf8'));
 const { render } = await import(pathToFileURL(path.join(root, '.ssr/entry-server.js')));
 const canonicalBase = 'https://phenomcanvas.com/notes';
 
@@ -69,6 +71,36 @@ const pages = [
     type: 'CollectionPage',
     temporalCoverage: songs.stats.dateRange ? `${songs.stats.dateRange.from}/${songs.stats.dateRange.to}` : undefined,
   },
+  {
+    route: '/all',
+    file: 'all/index.html',
+    title: '全部｜手記｜Phenom Canvas Lab',
+    description: `這個站上的 ${all.count} 項東西排在同一條時間軸上：${all.kinds.map((kind) => `${kind.label} ${kind.count}`).join('、')}，按日期新到舊，可依類型篩選。`,
+    keywords: ['總覽', '全部內容', '時間軸', '索引', '手記'],
+    type: 'CollectionPage',
+  },
+  {
+    route: '/kb',
+    file: 'kb/index.html',
+    title: '條目｜手記｜Phenom Canvas Lab',
+    description: `查清楚一件事之後留下的 ${kb.entries.length} 則條目，一則一個問題，各有永久網址、出處與建立和更新兩個日期，分在${kb.categories.filter((item) => item.count > 0).map((item) => item.label).join('、')}底下。`,
+    keywords: ['知識條目', '術語', '筆記', '出處', '常見問題', '手記'],
+    type: 'CollectionPage',
+  },
+  ...kb.entries.map((entry) => ({
+    route: `/kb/${entry.slug}`,
+    file: `kb/${entry.slug}/index.html`,
+    title: `${entry.title}｜條目｜手記｜Phenom Canvas Lab`,
+    description: entry.summary,
+    keywords: entry.keywords ?? [],
+    type: 'TechArticle',
+    post: {
+      ...entry,
+      publishedAt: entry.createdAt,
+      updatedAt: entry.updatedAt,
+      tags: entry.tags ?? [],
+    },
+  })),
   ...notes.posts.map((post) => ({
     route: `/${post.slug}`,
     file: `${post.slug}/index.html`,

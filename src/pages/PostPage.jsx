@@ -17,7 +17,7 @@ export default function PostPage() {
   const post = notes.posts.find((item) => item.slug === slug);
   const body = content.posts[slug];
 
-  if (!post || !body) {
+  if (!post || !body?.html) {
     return <NotFoundPage />;
   }
 
@@ -52,7 +52,7 @@ export default function PostPage() {
         keepReadingWidth
         nav={postsNav(slug)}
       >
-        <HtmlProse html={body} />
+        <HtmlProse html={body.html} notes={body.notes} />
 
         {(post.related ?? []).length > 0 ? (
           <section className="mt-12 border-t border-line-soft pt-6">
