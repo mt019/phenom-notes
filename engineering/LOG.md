@@ -1,5 +1,59 @@
 # Engineering Log
 
+## 2026-08-28 — 字型投遞：每頁多下載的 1.75 MB，與為一個 emoji 拉的 5.77 MB
+
+### 量到什麼
+
+headless 冷造訪，本機服務 `dist`，`/notes/why-tax-law/` 下載 6 支字型、11,121,668 bytes：
+匯文明朝 ext 5,769,404、core 2,354,456、`HuiwenMincho-notes-subset` 1,789,160、
+Erikas 兩面 1,190,460、Radio Newsman 18,188。側欄印著〈3🐑〉標題的頁面另加 Chiron
+3,384,260，合計 14,505,928。
+
+### 兩件壞掉的事
+
+`public/fonts/HuiwenMincho-notes-subset.woff2` 沒有任何 `@font-face` 引用。它由
+`vite.config.js` 的 plugin 接上：那支 plugin 把套件 `styles.css` 裡的
+`"../fonts/HuiwenMincho-subset.woff2"` 換成本站的檔，而套件 v0.1.34 把 `styles.css` 拆成
+兩行 `@import` 之後，那個字串不在被 transform 的檔案裡，`String.replace` 找不到就原樣返回。
+`index.html` 仍然 preload 它，preload 不需要 CSS 引用就會發請求，於是每頁下載 1.75 MB
+放著不用。當時 `validate-build.mjs` 的三條字型檢查是「檔在不在」「有沒有超過 2 MiB」
+「HTML 有沒有那行 preload」，壞掉的狀態下三條全過。
+
+套件的內文其餘面自 2026-08-17 切分以來不帶 `unicode-range`，等於宣告 U+0-10FFFF，常用面
+沒有的碼位一律落到它。72 頁裡有 65 頁的側欄印著〈3🐑〉，U+1F411 不在常用面的範圍內，
+每頁去取 5.77 MB，而其餘面裡沒有那隻羊，瀏覽器仍然落回系統 emoji。這份宣告由九個站共用。
+
+### 改法
+
+`@phenomcanvas/ui` v0.1.63 給其餘面補上 `unicode-range: U+3400-4DBF, U+4E00-9FFF,
+U+F900-FAFF`。宣告成三個漢字區塊而不逐字列出：其餘面實測只含漢字（8,644 個碼位），逐字
+要 4,535 段、40 KB 的 CSS 進每一頁。區塊裡 Huiwen 畫不出的碼位由 Chiron 那一面接走（宣告
+在後，17,140 個碼位），兩者都沒有的剩 143 個相容漢字。`validate-font-subsets.mjs` 加一條
+驗宣告涵蓋得住其餘面實際含有的每個碼位，驗涵蓋不驗相等：宣告可以比內容寬，比它窄的話
+那些字會掉到堆疊下一個字型，同一句話兩種字面而沒有東西會報。
+
+v0.1.64 的 `scripts/lib/font-delivery.mjs` 驗兩件事：產物裡每個字型檔都要出現在某一份
+CSS 裡，每個 `as="font"` 的 preload 都要指向被引用的檔。掃到零份 CSS 或零份 HTML 也報。
+本站升到 v0.1.64，刪掉 `public/fonts/`、`index.html` 的 preload 與那個 plugin，
+`validate-build.mjs` 改為呼叫共用層，不留第二份判定。
+
+負向測試四條各實跑到失敗訊息：拿掉 `unicode-range`；把範圍改窄成 `U+4E00-9FFF`（報 208 個
+碼位落在範圍外）；`public/` 塞一個沒人引用的字型重建；把 preload 加回 `index.html` 重建。
+
+改後同一組頁面量到 9,332,508 bytes。
+
+### 還沒解決
+
+每頁仍取其餘面那 5.77 MB，成因換成側欄的〈替餼羊說幾句話〉——「餼」只有其餘面有。常用面
+取字頻 99.9%（3,275 個漢字），而六個站的正文合計只用到 6,003 個相異漢字，其餘的全靠那一面。
+實裁量過：常用面改成收下語料裡出現過的全部字元是 7,059 碼位 3.90 MB，其餘面剩 6,075 碼位
+3.86 MB，本站每頁 9.33 MB 降到約 5.1 MB。代價是首屏那一面 2.25 MB 變 3.90 MB，而
+2026-08-17 切成兩面的理由正是首屏要快（CLS 0.293 降到 0.002）。門檻要不要改，站主未定。
+
+其餘八站（wealth、court、statistics、iias、tax、judicial-translations、brief、studies）
+沒有字型斷言，各自 dist 帶 11.2 MB，升版並接上 `runFontDelivery` 的薄殼還沒做。
+`my-canvas-lab` 另有一份拆分前的 7.94 MB 單檔子集。
+
 ## 2026-08-01 — 短記更新直接進 Pages
 
 - 正式資料現在從 `phenom-notes-data` dispatch 到 `phenom-ops`。Canvas 的 Vercel workflow

@@ -1,11 +1,24 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { runFontDelivery } from '@phenomcanvas/ui/validators/lib/font-delivery.mjs';
 
 const dist = resolve('dist');
-const notesFontPath = join(dist, 'fonts', 'HuiwenMincho-notes-subset.woff2');
-if (!existsSync(notesFontPath)) throw new Error('缺少手記用匯文明朝子集');
-if (statSync(notesFontPath).size > 2 * 1024 * 1024) throw new Error('手記用匯文明朝子集超過 2 MiB');
+
+// 產物裡的字型檔要有東西引用它，字型的 preload 也要指向被引用的檔。判定在
+// @phenomcanvas/ui 的 scripts/lib/font-delivery.mjs（站群共用一份），來歷寫在那裡：
+// 本站 2026-08-01 那份 1.75 MB 的固定子集自套件 v0.1.34 起沒有任何 @font-face 引用，
+// 而 index.html 仍然 preload 它，當時的三條字型檢查全過。
+runFontDelivery({ dist });
+
+// 兩面都要在。少了任何一面，正文會掉到堆疊下一個字型，而畫面照樣出得來。
+const assetNames = readdirSync(join(dist, 'assets'));
+for (const prefix of ['HuiwenMincho-core-subset', 'HuiwenMincho-ext-subset']) {
+  if (!assetNames.some((name) => name.startsWith(prefix))) {
+    throw new Error(`產物裡沒有 ${prefix}：正文的匯文明朝沒有出貨`);
+  }
+}
+
 const icon = readFileSync(join(dist, 'phenom-ring.svg'));
 if (createHash('sha256').update(icon).digest('hex') !== '20c617f5d4778b6632182f63c5bd93546c047cca533cf6f96b332359b086fb5e') {
   throw new Error('共用 phenom-ring.svg SHA-256 不符');
@@ -29,9 +42,6 @@ for (const route of routes) {
   }
   if (!html.includes('application/ld+json')) throw new Error(`缺少 JSON-LD：${route}`);
   if (!html.includes('<link rel="icon" href="/phenom-ring.svg"')) throw new Error(`缺少共用 favicon：${route}`);
-  if (!html.includes('rel="preload" href="/notes/fonts/HuiwenMincho-notes-subset.woff2"')) {
-    throw new Error(`缺少匯文明朝預載：${route}`);
-  }
   // 眉標按層級回上一層：條目頁回條目索引（索引自己再回手記），其餘內頁直接回手記。
   // 每一層都要有，否則讀者從搜尋結果直接落在某一頁時走不出去。
   if (route.startsWith('/kb/')) {
