@@ -12,11 +12,28 @@ const dist = resolve('dist');
 runFontDelivery({ dist });
 
 // 兩面都要在。少了任何一面，正文會掉到堆疊下一個字型，而畫面照樣出得來。
-const assetNames = readdirSync(join(dist, 'assets'));
+// 字型自 v0.1.65 起由 assets.phenomcanvas.com 供應，產物裡不再有字型檔，所以驗的是
+// 產物的 CSS 有沒有引到套件 manifest 登記的那兩支 URL，以及 HTML 有沒有 preload 常用面
+// （preload 由 vite-font-preload.mjs 注入；漏掛 plugin 時 CSS 照樣對，只是首屏字型晚一個往返）。
+const manifest = JSON.parse(readFileSync(resolve('node_modules/@phenomcanvas/ui/fonts/external-manifest.json'), 'utf8'));
+const urlFor = (prefix) => {
+  const file = manifest.files.find((entry) => entry.source.startsWith(prefix));
+  if (!file) throw new Error(`套件 manifest 沒有登記 ${prefix}`);
+  return file.url;
+};
+const builtCss = readdirSync(join(dist, 'assets')).filter((name) => name.endsWith('.css'))
+  .map((name) => readFileSync(join(dist, 'assets', name), 'utf8')).join('\n');
+if (!builtCss) throw new Error('產物裡沒有任何 CSS，字型指向無從驗起');
 for (const prefix of ['HuiwenMincho-core-subset', 'HuiwenMincho-ext-subset']) {
-  if (!assetNames.some((name) => name.startsWith(prefix))) {
-    throw new Error(`產物裡沒有 ${prefix}：正文的匯文明朝沒有出貨`);
-  }
+  const url = urlFor(prefix);
+  if (!builtCss.includes(url)) throw new Error(`產物的 CSS 沒有引到 ${prefix} 的共用 URL：${url}`);
+}
+const entryHtml = readFileSync(join(dist, 'index.html'), 'utf8');
+const coreUrl = urlFor('HuiwenMincho-core-subset');
+const preloadsCore = [...entryHtml.matchAll(/<link[^>]+rel="preload"[^>]*>/g)]
+  .some(([tag]) => /as="font"/.test(tag) && tag.includes(`href="${coreUrl}"`));
+if (!preloadsCore) {
+  throw new Error('index.html 沒有 preload 常用面：vite.config.js 的 fontPreload plugin 沒有生效');
 }
 
 const icon = readFileSync(join(dist, 'phenom-ring.svg'));

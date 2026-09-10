@@ -1,5 +1,27 @@
 # Engineering Log
 
+## 2026-09-11 — 字型改由 assets.phenomcanvas.com 供應，與 court、wealth 共用快取
+
+站主讀〈借眼〉回報字型載入很久。本機線路 230 KB/s 下 headless 實測，25 秒後常用面 2.3 MB、
+其餘面 5.6 MB、Erikas Bold 710 KB 三支都還沒下載完。其餘面被抓的原因與 8/28 那條相同：
+側欄每頁印全部文章標題，〈替餼羊說幾句話〉的「餼」不在常用面，82 頁裡 80 頁命中。
+
+共用套件 v0.1.65（9/8）已把七支字型改成從 `assets.phenomcanvas.com` 以內容定址供應，
+court 與 wealth 同日升版接上；本站當時在 `phenom-ops/infra/font-delivery-exceptions.json`
+登記為例外，理由寫的是 8/31 已刪掉的那條字串替換產線，加上「字集重切待站主裁定」——
+換投遞方式與重切字表是兩件事，前者不需要裁定。
+
+這一次照 court `b1e5eb2` 改三個檔：`package.json` 升 v0.1.65、`src/main.jsx` 入口換
+`styles-external-fonts.css`、`vite.config.js` 掛 `vite-font-preload.mjs`。產物 23.99 →
+11.87 MiB，七支 phenom 字型不再進 dist；HTML 的 preload 與 CSS 的 @font-face 都指向
+共用 origin，剛看過 cc 或 wealth 的讀者進本站不必重抓常用面。
+
+`validate-build.mjs` 那條「常用面與其餘面兩個檔都要出貨」改成外部供應版：產物的 CSS 要
+引到套件 manifest 登記的兩支 URL，`index.html` 要 preload 常用面。負向測試兩條實跑：
+拿掉 preload 報「fontPreload plugin 沒有生效」，CSS 改掉其餘面 URL 報「沒有引到共用 URL」。
+
+每頁仍會抓其餘面 5.6 MB，字表在共用層，是 CHECKPOINT.notes.md 字型投遞子線寫著待裁定的下一步；Erikas
+兩支 1.16 MB 的子集裝了 340 個碼位，本站只用到數字與 eyebrow，也還沒有動。
 ## 2026-08-28 — 字型投遞：每頁多下載的 1.75 MB，與為一個 emoji 拉的 5.77 MB
 
 ### 量到什麼
