@@ -102,18 +102,25 @@ for (const name of ['inventory.json', 'timeline.json', 'songs.json']) {
 }
 // 註解 payload 隨 snapshot 一起來（資料倉的 data/notes.json → notes.json 的 annotations）。
 const annotations = notes.annotations ?? {};
+// 圖表的 SVG 從 snapshot 讀進來，渲染時嵌進正文（見 render-markdown.mjs 的 inlineFigures）。
+const figuresDir = resolve(root, 'public', 'notes-assets', 'figures');
+const figures = existsSync(figuresDir)
+  ? Object.fromEntries(readdirSync(figuresDir)
+    .filter((name) => name.endsWith('.svg'))
+    .map((name) => [name, readFileSync(resolve(figuresDir, name), 'utf8')]))
+  : {};
 const content = {
   archive: renderMarkdown(readFileSync(resolve(root, 'content', 'archive.mdx'), 'utf8'), annotations),
   posts: Object.fromEntries(
     notes.posts.map((post) => [
       post.slug,
-      renderMarkdown(readFileSync(resolve(root, 'content', 'posts', `${post.slug}.mdx`), 'utf8'), annotations),
+      renderMarkdown(readFileSync(resolve(root, 'content', 'posts', `${post.slug}.mdx`), 'utf8'), annotations, figures),
     ]),
   ),
   kb: Object.fromEntries(
     (kb.entries ?? []).map((entry) => [
       entry.slug,
-      renderMarkdown(readFileSync(resolve(root, 'content', 'kb', `${entry.slug}.mdx`), 'utf8'), annotations),
+      renderMarkdown(readFileSync(resolve(root, 'content', 'kb', `${entry.slug}.mdx`), 'utf8'), annotations, figures),
     ]),
   ),
 };

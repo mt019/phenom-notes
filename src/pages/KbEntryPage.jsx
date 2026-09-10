@@ -60,6 +60,10 @@ export default function KbEntryPage() {
       >
         <HtmlProse html={body.html} notes={body.notes} />
 
+        {/* 正文掛得出註標的條目，出處已經隨註腳清單印在正文末尾（同一組資料，見
+            scripts/render-markdown.mjs）。這一節只留給還沒逐句掛註的條目，兩份都印會讓
+            讀者以為那是兩組來源。 */}
+        {(body.notes ?? []).length > 0 ? null : (
         <section className="mt-12 border-t border-line-soft pt-6">
           <h2 className="mb-3 font-accent text-token-xs uppercase tracking-[0.12em] text-ink-faint">出處</h2>
           <ul className="space-y-2">
@@ -73,6 +77,7 @@ export default function KbEntryPage() {
             ))}
           </ul>
         </section>
+        )}
 
         {(entry.related ?? []).length > 0 ? (
           <section className="mt-10 border-t border-line-soft pt-6">

@@ -58,9 +58,27 @@ function renderFootnotes(source, annotations = {}) {
   return { html, notes };
 }
 
-export function renderMarkdown(source, annotations = {}) {
+// 圖表的 SVG 直接嵌進 HTML，不走 <img src>。用 <img> 載進來的 SVG 是另一份文件，取不到
+// 站上的字型與色彩 token，圖裡的字會退回系統 sans，與正文的明體對不上；嵌進來之後
+// var(--font-body)、var(--c-ink) 這些就是頁面自己的值，深色模式也跟著走。
+// 圖說取自 markdown 的 alt，渲染成 figcaption——每一張圖都要有圖說，不是只有 alt。
+function inlineFigures(source, figures) {
+  if (!figures || Object.keys(figures).length === 0) return source;
+  return transformOutsideFences(source, (line) => line.replace(
+    /!\[([^\]]*)\]\(\/notes-assets\/figures\/([^)\s]+)\)/g,
+    (whole, alt, file) => {
+      const svg = figures[file];
+      if (!svg) return whole;
+      return `<figure class="notes-figure">${svg.trim()}`
+        + (alt ? `<figcaption>${marked.parseInline(alt)}</figcaption>` : '')
+        + '</figure>';
+    },
+  ));
+}
+
+export function renderMarkdown(source, annotations = {}, figures = {}) {
   const slugger = new GithubSlugger();
-  const { html: withNotes, notes } = renderFootnotes(source, annotations);
+  const { html: withNotes, notes } = renderFootnotes(inlineFigures(source, figures), annotations);
   const rendered = marked.parse(withNotes, { gfm: true });
   const html = rendered
     .replaceAll('src="/notes-assets/', 'src="/notes/notes-assets/')

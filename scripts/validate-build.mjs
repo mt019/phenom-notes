@@ -60,8 +60,14 @@ for (const entry of kb.entries) {
     throw new Error(`條目沒有 build-time 正文：${entry.slug}`);
   }
   if (!html.includes(entry.id)) throw new Error(`條目頁沒有印出編號：${entry.slug}`);
-  if ((entry.sources ?? []).length > 0 && !html.includes('出處')) {
-    throw new Error(`條目頁沒有出處那一段：${entry.slug}`);
+  // 來源要在頁面上看得到，兩種形狀擇一：逐句掛註的條目印註腳清單，還沒掛註的印章末出處。
+  // 只查其中一種，改用另一種的條目就會安靜地把來源整批漏掉。
+  const hasNotes = html.includes('class="footnotes"');
+  if ((entry.sources ?? []).length > 0 && !hasNotes && !html.includes('出處')) {
+    throw new Error(`條目頁既沒有註腳清單也沒有出處那一段：${entry.slug}`);
+  }
+  if (hasNotes && html.includes('>出處<')) {
+    throw new Error(`條目頁同時印了註腳清單與出處清單，兩份來源會被當成兩組：${entry.slug}`);
   }
 }
 // 總覽要真的把三種都列出來。少了一類不會報錯，只會讓那一類在頁面上整批消失。
