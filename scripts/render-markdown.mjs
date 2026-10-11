@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import GithubSlugger from 'github-slugger';
+import katex from 'katex';
 import { marked } from 'marked';
 
 function transformOutsideFences(source, transform) {
@@ -14,6 +15,43 @@ function transformOutsideFences(source, transform) {
     }
     return fence ? line : transform(line);
   }).join('\n');
+}
+
+// 行內數學：正文寫 `$…$`、`$$…$$`，在這裡交給 KaTeX 排成 HTML。資料倉的閘擋直接鍵入的 π、≠
+// 這類字元，公式只能用 TeX 寫進來，所以這一層缺了，正文就印出字面的 `$2\pi$`。
+// 判準照 pandoc 的 tex_math_dollars：開頭的 `$` 後面不接空白，收尾的 `$` 前面不接空白、
+// 後面不接數字，因此「$5 與 $10」這種金額不會被當成公式。只認同一行之內的成對 `$`，
+// 程式碼圍籬與行內程式碼裡的 `$` 原樣保留。
+//
+// KaTeX 的輸出先換成佔位字串，marked 跑完再填回去：輸出是一大串帶 style 的 span，
+// 交給 marked 處理有被當成 markdown 改寫的風險。KaTeX 的 CSS 與字型由 @phenomcanvas/ui
+// 的 Prose 元件帶進產物，這裡不另外載。
+const MATH_PATTERN = /\$\$([^$\n]+?)\$\$|\$(?![\s$])([^$\n]*?[^\s\\$])\$(?!\d)/g;
+
+function renderMath(source) {
+  const rendered = [];
+  const replaceOutsideCodeSpans = (line) => line.split(/(`+[^`]*`+)/).map((part, index) => (
+    index % 2 === 1 ? part : part.replace(MATH_PATTERN, (whole, display, inline, offset, text) => {
+      if (offset > 0 && text[offset - 1] === '\\') return whole;
+      const html = katex.renderToString(display ?? inline, {
+        displayMode: display !== undefined,
+        throwOnError: false,
+        output: 'htmlAndMathml',
+        trust: false,
+        strict: 'ignore',
+      });
+      rendered.push(html);
+      return `KATEXMATH${rendered.length - 1}ENDMATH`;
+    })
+  )).join('');
+  return { source: transformOutsideFences(source, replaceOutsideCodeSpans), rendered };
+}
+
+function restoreMath(html, rendered) {
+  if (rendered.length === 0) return html;
+  return html.replace(/<p>KATEXMATH(\d+)ENDMATH<\/p>/g, (whole, index) => (
+    rendered[Number(index)].includes('katex-display') ? rendered[Number(index)] : whole
+  )).replace(/KATEXMATH(\d+)ENDMATH/g, (whole, index) => rendered[Number(index)]);
 }
 
 // 註標有兩種來源：匯入的舊文用 markdown 原本的行內定義（`[^1]: 說明`），後來寫的文章把
@@ -78,8 +116,9 @@ function inlineFigures(source, figures) {
 
 export function renderMarkdown(source, annotations = {}, figures = {}) {
   const slugger = new GithubSlugger();
-  const { html: withNotes, notes } = renderFootnotes(inlineFigures(source, figures), annotations);
-  const rendered = marked.parse(withNotes, { gfm: true });
+  const { source: withMath, rendered: math } = renderMath(source);
+  const { html: withNotes, notes } = renderFootnotes(inlineFigures(withMath, figures), annotations);
+  const rendered = restoreMath(marked.parse(withNotes, { gfm: true }), math);
   const html = rendered
     .replaceAll('src="/notes-assets/', 'src="/notes/notes-assets/')
     .replace(/<h([23])>([\s\S]*?)<\/h\1>/g, (_, level, body) => {

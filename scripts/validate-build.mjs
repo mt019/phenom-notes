@@ -36,6 +36,30 @@ if (!preloadsCore) {
   throw new Error('index.html 沒有 preload 常用面：vite.config.js 的 fontPreload plugin 沒有生效');
 }
 
+// 正文的數學由 render-markdown.mjs 交給 KaTeX。這一層若沒有生效，正文會印出字面的
+// `$2\pi$`，而頁面照樣渲染、其餘檢查照樣通過（2026-10-11〈門上的貼紙與四十四封信〉就是這樣
+// 上線的）。程式碼區塊與 KaTeX 自己留在 MathML 裡的 TeX 原文不算。
+const generatedContent = JSON.parse(readFileSync(resolve('src/data/generated/content.json'), 'utf8'));
+const proseHtml = [
+  ['archive', generatedContent.archive],
+  ...Object.entries(generatedContent.posts).map(([slug, body]) => [slug, body]),
+  ...Object.entries(generatedContent.kb).map(([slug, body]) => [`kb/${slug}`, body]),
+];
+for (const [slug, body] of proseHtml) {
+  const visible = (body?.html ?? '')
+    .replace(/<pre[\s\S]*?<\/pre>/g, '')
+    .replace(/<code[\s\S]*?<\/code>/g, '')
+    .replace(/<annotation[\s\S]*?<\/annotation>/g, '');
+  const leaked = visible.match(/\$[^$<\n]{0,40}\\[A-Za-z]+[^$<\n]{0,40}\$/);
+  if (leaked) throw new Error(`正文印出未排版的 TeX：${slug}「${leaked[0]}」，render-markdown.mjs 的數學層沒有生效`);
+  if (/KATEXMATH\d+ENDMATH/.test(visible)) throw new Error(`數學佔位字串沒有填回：${slug}`);
+}
+const mathPost = generatedContent.posts['door-sticker-and-forty-four-letters'];
+if (mathPost) {
+  const count = (mathPost.html.match(/class="katex"/g) ?? []).length;
+  if (count < 3) throw new Error(`〈門上的貼紙與四十四封信〉的行內公式應有 3 處，實得 ${count}`);
+}
+
 const icon = readFileSync(join(dist, 'phenom-ring.svg'));
 if (createHash('sha256').update(icon).digest('hex') !== '20c617f5d4778b6632182f63c5bd93546c047cca533cf6f96b332359b086fb5e') {
   throw new Error('共用 phenom-ring.svg SHA-256 不符');

@@ -34,3 +34,19 @@ test('snapshot images resolve inside the permanent Notes path', () => {
   const { html } = renderMarkdown('![圖](/notes-assets/example.jpg)');
   assert.match(html, /src="\/notes\/notes-assets\/example\.jpg"/);
 });
+
+test('inline and display TeX render through KaTeX, prices and code stay literal', () => {
+  const { html } = renderMarkdown('門上寫 $2\\pi \\neq 1$。\n\n$$\\sum_i x_i$$\n\n金額 $5 與 $10，程式碼 `$x$`');
+  assert.equal((html.match(/class="katex"/g) ?? []).length, 2);
+  assert.match(html, /class="katex-display"/);
+  assert.doesNotMatch(html, /<p><span class="katex-display"/);
+  assert.match(html, /金額 \$5 與 \$10/);
+  assert.match(html, /<code>\$x\$<\/code>/);
+  assert.doesNotMatch(html, /KATEXMATH/);
+});
+
+test('dollar signs inside fenced code are left alone', () => {
+  const { html } = renderMarkdown('```html\n{{ $name }} and $a$\n```');
+  assert.doesNotMatch(html, /katex/);
+  assert.match(html, /\$a\$/);
+});
