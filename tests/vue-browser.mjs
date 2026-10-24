@@ -23,6 +23,9 @@ const browser = await playwright.chromium.launch();
 const contexts = [];
 const url = path => new URL(path.replace(/^\//, ''), base).href;
 const timeout = 20000;
+async function hydrated(p) {
+  await p.waitForFunction(() => Boolean(document.getElementById('root')?.__vue_app__), null, {timeout: 60000});
+}
 async function waitFor(check, label) {
   const start = Date.now();
   while (!(await check())) {
@@ -57,6 +60,8 @@ async function load(p, path = '') {
   const response = await p.goto(url(path), { waitUntil: 'domcontentloaded', timeout: 60000 });
   assert.equal(response.status(), 200, `HTTP ${path}`);
   await p.locator('h1').waitFor();
+  // SSR controls exist before their listeners are hydrated on a cold public load.
+  await hydrated(p);
   await p.getByRole('button', { name: 'Larger text', exact: true }).first().waitFor();
 }
 async function pick(p, index, label) {
@@ -92,7 +97,7 @@ try {
 
   await p.getByRole('button', { name: 'Larger text', exact: true }).first().click();
   await scale(p, '110%');
-  await p.reload({ waitUntil: 'domcontentloaded' }); await scale(p, '110%');
+  await p.reload({ waitUntil: 'domcontentloaded' }); await hydrated(p); await scale(p, '110%');
   assert.equal(await p.evaluate(() => localStorage.getItem('canvaslab:fontScale')), '1.1');
   await p.getByRole('button', { name: 'Reset text size', exact: true }).first().click(); await scale(p, '100%');
   checks.push('Reading size changes, persists through reload, and resets');
@@ -106,7 +111,7 @@ try {
   const accent = await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--c-accent').trim());
   assert(accent, 'palette applied');
   await p.keyboard.press('Escape'); await count(p, '[role="menu"]', 0);
-  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.reload({ waitUntil: 'domcontentloaded' }); await hydrated(p);
   await p.getByRole('button', { name: '外觀', exact: true }).click();
   assert.equal(await p.getByRole('button', { name: paletteName, exact: true }).getAttribute('aria-pressed'), 'true');
   assert.equal(await p.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--c-accent').trim()), accent);
@@ -162,7 +167,7 @@ try {
   const prose = p.locator('.notes-html').first();
   assert((await prose.textContent()).trim().length > 40, 'article body present after client navigation');
   const articleText = (await prose.textContent()).replace(/\s+/g, ' ').trim();
-  await p.reload({ waitUntil: 'domcontentloaded' });
+  await p.reload({ waitUntil: 'domcontentloaded' }); await hydrated(p);
   await p.getByRole('heading', { name: post.title, exact: true, level: 1 }).waitFor();
   assert.equal((await prose.textContent()).replace(/\s+/g, ' ').trim(), articleText, 'article survives direct SSR reload');
   checks.push('Home article link renders full body and direct reload preserves exact text');
