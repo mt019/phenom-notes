@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { computed, defineComponent } from 'vue';
+import { RouterLink as Link } from 'vue-router';
+import { ArrowRight } from 'lucide-vue-next';
 import {
   AppearanceMenu,
   DashboardLayout,
@@ -10,7 +10,7 @@ import {
   SectionLink,
   useFontScale,
   useTabParam,
-} from '@phenomcanvas/ui';
+} from '@phenomcanvas/ui-vue';
 import notes from '../data/generated/notes.json';
 import archive from '../data/generated/archive.json';
 import stream from '../data/generated/stream.json';
@@ -21,142 +21,145 @@ import timeline from '../data/generated/timeline.json';
 import songs from '../data/generated/songs.json';
 import { CANVAS_HOME, CANVAS_INDEX } from '../config.js';
 
-export default function HomePage() {
-  const { site, posts = [], tags = [] } = notes;
-  const [scale, setScale] = useFontScale();
-  const [tag, setTag] = useTabParam('tag', 'all');
-  const shown = useMemo(
-    () => (tag === 'all' ? posts : posts.filter((post) => (post.tags ?? []).includes(tag))),
-    [posts, tag],
-  );
-  const years = useMemo(() => {
-    const out = [];
-    for (const post of shown) {
-      const year = post.publishedAt.slice(0, 4);
-      const last = out.at(-1);
-      if (last?.year === year) last.list.push(post);
-      else out.push({ year, list: [post] });
-    }
-    return out;
-  }, [shown]);
+export default defineComponent({
+  name: 'HomePage',
+  setup() {
+    const { site, posts = [], tags = [] } = notes;
+    const { scale, setScale } = useFontScale();
+    const [tag, setTag] = useTabParam('tag', 'all');
+    const shown = computed(
+      () => (tag.value === 'all' ? posts : posts.filter((post) => (post.tags ?? []).includes(tag.value))));
+    const years = computed(() => {
+      const out = [];
+      for (const post of shown.value) {
+        const year = post.publishedAt.slice(0, 4);
+        const last = out.at(-1);
+        if (last?.year === year) last.list.push(post);
+        else out.push({ year, list: [post] });
+      }
+      return out;
+    });
 
-  return (
-    <div id="main-content">
-      <DashboardLayout
-        back={CANVAS_HOME}
-        backIndexHref={CANVAS_INDEX}
-        scale={scale}
-        headerRight={(
-          <>
-            <FontSizeControl scale={scale} onChange={setScale} />
-            <AppearanceMenu />
-          </>
-        )}
-        eyebrow="Notes"
-        title={site.title}
-        summary={site.intro}
-        tocLabel="本頁區塊"
-        refreshKey={tag}
-      >
-        <SectionLink to="/stream" title="短記" count={stream.count} className="mb-8">
-          <span className="mr-2 whitespace-nowrap font-accent text-token-xs tabular-nums text-ink-faint">
-            {stream.latest.date} {stream.latest.time}
-          </span>
-          {stream.latest.text}
-        </SectionLink>
+    return () => {
+      return (
+        <div id="main-content">
+          <DashboardLayout
+            back={CANVAS_HOME}
+            backIndexHref={CANVAS_INDEX}
+            scale={scale.value}
+            headerRight={(
+              <>
+                <FontSizeControl scale={scale.value} onChange={setScale} />
+                <AppearanceMenu />
+              </>
+            )}
+            eyebrow="Notes"
+            title={site.title}
+            summary={site.intro}
+            tocLabel="本頁區塊"
+            refreshKey={tag.value}
+          >
+            <SectionLink to="/stream" title="短記" count={stream.count} class="mb-8">
+              <span class="mr-2 whitespace-nowrap font-accent text-token-xs tabular-nums text-ink-faint">
+                {stream.latest.date} {stream.latest.time}
+              </span>
+              {stream.latest.text}
+            </SectionLink>
 
-        <FilterBar
-          label="標籤"
-          note={tag === 'all' ? null : `列出 ${shown.length} 篇，全部共 ${posts.length} 篇`}
-          className="mb-10"
-        >
-          <Dropdown
-            value={tag}
-            onChange={(value) => setTag(value, { scroll: 'preserve' })}
-            options={[
-              { value: 'all', label: `全部（${posts.length}）` },
-              ...tags.map((item) => ({ value: item.label, label: `${item.label}（${item.count}）` })),
-            ]}
-            panelWidth="w-64"
-          />
-          {tag === 'all' ? null : (
-            <button
-              type="button"
-              onClick={() => setTag('all', { scroll: 'preserve' })}
-              className="text-token-sm text-ink-faint underline decoration-line underline-offset-4 transition-colors duration-fast hover:text-accent"
+            <FilterBar
+              label="標籤"
+              note={tag.value === 'all' ? null : `列出 ${shown.value.length} 篇，全部共 ${posts.length} 篇`}
+              class="mb-10"
             >
-              清除
-            </button>
-          )}
-        </FilterBar>
+              <Dropdown
+                value={tag.value}
+                onChange={(value) => setTag(value, { scroll: 'preserve' })}
+                options={[
+                  { value: 'all', label: `全部（${posts.length}）` },
+                  ...tags.map((item) => ({ value: item.label, label: `${item.label}（${item.count}）` })),
+                ]}
+                panelWidth="w-64"
+              />
+              {tag.value === 'all' ? null : (
+                <button
+                  type="button"
+                  onClick={() => setTag('all', { scroll: 'preserve' })}
+                  class="text-token-sm text-ink-faint underline decoration-line underline-offset-4 transition-colors duration-fast hover:text-accent"
+                >
+                  清除
+                </button>
+              )}
+            </FilterBar>
 
-        {years.map((group, index) => (
-          <section key={group.year} className={index === 0 ? '' : 'mt-12 border-t border-line pt-8'}>
-            <h2 id={`year-${group.year}`} className="font-display text-token-lg text-ink">{group.year}</h2>
-            <div className="mt-1">
-              {group.list.map((post) => <PostRow key={post.slug} post={post} />)}
+            {years.value.map((group, index) => (
+              <section key={group.year} class={index === 0 ? '' : 'mt-12 border-t border-line pt-8'}>
+                <h2 id={`year-${group.year}`} class="font-display text-token-lg text-ink">{group.year}</h2>
+                <div class="mt-1">
+                  {group.list.map((post) => <PostRow key={post.slug} post={post} />)}
+                </div>
+              </section>
+            ))}
+
+            {shown.value.length === 0 ? (
+              <p class="py-10 text-token-sm text-ink-faint">沒有標記「{tag.value}」的文章。</p>
+            ) : null}
+
+            <div class="mt-14 border-t border-line pt-2">
+              <SectionLink to="/kb" title="條目" count={kb.entries.length}>
+                查清楚一件事之後留下的條目，一則一個問題。有出處，會改，改了會記日期。
+              </SectionLink>
+              <SectionLink to="/all" title="全部" count={all.count}>
+                文章、條目與短記排在同一條時間軸上，按日期新到舊。要找「那件事寫在哪裡」就從這裡查。
+              </SectionLink>
+              <SectionLink to="/archive" title="舊帖" count={archive.count}>
+                {archive.dateRange.from.slice(0, 4)}–{archive.dateRange.to.slice(0, 4)} 年的短記，多半只有一兩行，
+                最短的一則六個字。收在同一頁上，按年份排。
+              </SectionLink>
+              <SectionLink to="/timeline" title="年表" count={timeline.stats.count}>
+                按日期排的事件：買了什麼、考了什麼、寫了什麼、決定了什麼。
+                {timeline.stats.dateRange
+                  ? `目前從 ${timeline.stats.dateRange.from} 到 ${timeline.stats.dateRange.to}。`
+                  : null}
+              </SectionLink>
+              <SectionLink to="/inventory" title="器物" count={inventory.stats.count}>
+                手上的電腦、相機、儲存與線材，一件一列，附規格與入手時間。
+              </SectionLink>
+              <SectionLink to="/songs" title="歌單" count={songs.stats.count}>
+                聲樂課唱過的歌，分台語、國語、粵語、英文四組，附原唱與唱的日期。
+              </SectionLink>
             </div>
-          </section>
-        ))}
 
-        {shown.length === 0 ? (
-          <p className="py-10 text-token-sm text-ink-faint">沒有標記「{tag}」的文章。</p>
-        ) : null}
-
-        <div className="mt-14 border-t border-line pt-2">
-          <SectionLink to="/kb" title="條目" count={kb.entries.length}>
-            查清楚一件事之後留下的條目，一則一個問題。有出處，會改，改了會記日期。
-          </SectionLink>
-          <SectionLink to="/all" title="全部" count={all.count}>
-            文章、條目與短記排在同一條時間軸上，按日期新到舊。要找「那件事寫在哪裡」就從這裡查。
-          </SectionLink>
-          <SectionLink to="/archive" title="舊帖" count={archive.count}>
-            {archive.dateRange.from.slice(0, 4)}–{archive.dateRange.to.slice(0, 4)} 年的短記，多半只有一兩行，
-            最短的一則六個字。收在同一頁上，按年份排。
-          </SectionLink>
-          <SectionLink to="/timeline" title="年表" count={timeline.stats.count}>
-            按日期排的事件：買了什麼、考了什麼、寫了什麼、決定了什麼。
-            {timeline.stats.dateRange
-              ? `目前從 ${timeline.stats.dateRange.from} 到 ${timeline.stats.dateRange.to}。`
-              : null}
-          </SectionLink>
-          <SectionLink to="/inventory" title="器物" count={inventory.stats.count}>
-            手上的電腦、相機、儲存與線材，一件一列，附規格與入手時間。
-          </SectionLink>
-          <SectionLink to="/songs" title="歌單" count={songs.stats.count}>
-            聲樂課唱過的歌，分台語、國語、粵語、英文四組，附原唱與唱的日期。
-          </SectionLink>
+            <div class="mt-10 border-t border-line-soft pt-5">
+              <p class="text-token-sm leading-relaxed text-ink-faint">{site.note}</p>
+            </div>
+          </DashboardLayout>
         </div>
-
-        <div className="mt-10 border-t border-line-soft pt-5">
-          <p className="text-token-sm leading-relaxed text-ink-faint">{site.note}</p>
-        </div>
-      </DashboardLayout>
-    </div>
-  );
-}
+      );
+    };
+  },
+});
 
 function PostRow({ post }) {
   return (
     <Link
       to={post.route}
-      className="group -mx-3 block rounded-token-md px-3 py-5 transition-colors duration-fast hover:bg-surface"
+      class="group -mx-3 block rounded-token-md px-3 py-5 transition-colors duration-fast hover:bg-surface"
     >
-      <div className="flex items-baseline justify-between gap-4">
+      <div class="flex items-baseline justify-between gap-4">
         <h3
           id={`post-${post.slug}`}
-          className="font-display text-token-lg text-ink transition-colors duration-fast group-hover:text-accent"
+          class="font-display text-token-lg text-ink transition-colors duration-fast group-hover:text-accent"
         >
           {post.title}
         </h3>
         <ArrowRight
           size={16}
-          className="shrink-0 text-ink-faint transition-transform duration-fast group-hover:translate-x-0.5 group-hover:text-accent"
+          class="shrink-0 text-ink-faint transition-transform duration-fast group-hover:translate-x-0.5 group-hover:text-accent"
         />
       </div>
-      {post.subtitle ? <p className="mt-1 text-token-sm text-ink-muted">{post.subtitle}</p> : null}
-      <p className="mt-2 text-token-sm leading-relaxed text-ink-faint">{post.summary}</p>
-      <p className="mt-3 font-accent text-token-xs text-ink-faint">
+      {post.subtitle ? <p class="mt-1 text-token-sm text-ink-muted">{post.subtitle}</p> : null}
+      <p class="mt-2 text-token-sm leading-relaxed text-ink-faint">{post.summary}</p>
+      <p class="mt-3 font-accent text-token-xs text-ink-faint">
         {post.publishedAt}
         {post.readingMinutes ? ` · 約 ${post.readingMinutes} 分鐘` : ''}
         {(post.tags ?? []).length > 0 ? ` · ${post.tags.join('、')}` : ''}

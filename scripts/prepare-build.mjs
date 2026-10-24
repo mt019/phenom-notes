@@ -81,7 +81,7 @@ if (existsSync(sourceAssets)) {
   cpSync(sourceAssets, targetAssets, { recursive: true });
 }
 
-const sharedIcon = resolve('node_modules', '@phenomcanvas', 'ui', 'assets', 'phenom-ring.svg');
+const sharedIcon = new URL(import.meta.resolve('@phenomcanvas/ui-vue/assets/phenom-ring.svg'));
 const iconBytes = readFileSync(sharedIcon);
 const iconSha256 = createHash('sha256').update(iconBytes).digest('hex');
 if (iconSha256 !== '20c617f5d4778b6632182f63c5bd93546c047cca533cf6f96b332359b086fb5e') {

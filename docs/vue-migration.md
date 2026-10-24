@@ -35,3 +35,46 @@ until the complete real application preview passes and the production authority
 gate is met. The initial shared ReadingShell demo is not full Notes parity;
 mobile rail, automatic headings, ArticleLayout/SiteHeader, annotations and SEO/SSR
 integration still need implementation here and/or in the shared Vue package.
+
+## Implementation checkpoint (2026-10-24)
+
+Native Vue JSX pages and Vue Router client/SSR entry points are implemented in
+this isolated branch. Shared reading controls live only in ui/packages/vue;
+Notes consumes a fixed vendor tarball. The original UI CSS/tokens/palettes/font
+sources have no diff between v0.1.68 and the shared package design source.
+
+Data reproduction: clean detached b8029a2021a058fab6f9882c0a342708895b1798
+exports 105 files and produces manifest SHA-256
+5cd2118a754dbd8e4a3ca1789ac01773e64da62e2c972219663b6ed056386cb7,
+identical to production. The current prose-rules package rejects an unchanged
+existing legal article's wording (“三組規定”; rule added 2026-10-21). No content
+was edited or gate disabled: the reproduction uses archived historical Ops
+6021b92a66a36b6949622ed2ec9e2ba82bb1c648 prose-rules and passes the full data
+validator. This is baseline reproduction only; the newer editorial gate mismatch
+must stay visible before any new production pipeline run.
+
+The unchanged React source 707bb14 is built separately in sibling notes-react
+against this same verified snapshot. It passes all original build checks:
+82 content routes plus 404. tests/vue-parity.mjs compares all static routes'
+exact prose HTML, headings, link destinations, canonical metadata and JSON-LD,
+plus the three public JSON payloads. tests/vue-browser.mjs tests real interactions
+and fails on Vue/hydration warnings. These new Vue checks are not yet accepted
+until execution succeeds; source conversion alone is not delivery.
+
+Current external state: Home Vue production remains usable; Notes production
+remains React. No Notes preview or production promotion is implied by this
+checkpoint. Next action: finish fixed-package installation, run original tests,
+build Vue, static parity and browser regression, repair failures, then publish
+and externally verify an immutable Notes preview. Production remains gated.
+
+## Local acceptance
+
+All original six content tests, installed-package strict typecheck, Vue client/SSR
+build, 82 content-route validation plus 404, 83-route content/metadata/navigation
+parity, and nine desktop/mobile browser regression groups pass. Browser console
+and hydration errors: zero. Mobile drawer VNode reuse and annotation container
+attribute forwarding were fixed before acceptance. Route components load through
+Vue Router lazy imports; full article HTML is still produced at build time.
+
+Exact package provenance is in vue-package-lock.json. The public preview still
+requires an external probe before any preview_verified state is recorded.

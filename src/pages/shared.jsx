@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { AnnotatedHtml, ArticleNav, Prose } from '@phenomcanvas/ui';
+import { RouterLink as Link } from 'vue-router';
+import { AnnotatedHtml, ArticleNav, Prose } from '@phenomcanvas/ui-vue';
 import notes from '../data/generated/notes.json';
 import kb from '../data/generated/kb.json';
 import { relatedTarget } from '../config.js';
@@ -32,18 +32,23 @@ export function kbNav(currentSlug) {
 
 // 正文在建置時就轉成 HTML 了，註標由 render-markdown.mjs 寫成 <sup class="fn-ref">。
 // AnnotatedHtml 用事件委派把註標接上浮卡；沒有註的文章走同一條路，notes 是空陣列。
-export function HtmlProse({ html, notes: annotations = [], className = '' }) {
+export function HtmlProse({ html, notes: annotations = [], class: className = '' }) {
   return (
     <Prose>
-      <AnnotatedHtml html={html} notes={annotations} className={`notes-html ${className}`} />
+      <AnnotatedHtml html={html} notes={annotations} class={`notes-html ${className}`} />
     </Prose>
   );
 }
 
-export function ContentLink({ href, children, className }) {
+export function ContentLink({ href, class: className }, { slots }) {
+  const children = slots.default?.();
   const target = relatedTarget(href);
   if (target.external) {
-    return <a href={target.href} className={className}>{children}</a>;
+    return <a href={target.href} class={className}>{children}</a>;
   }
-  return <Link to={target.href} className={className}>{children}</Link>;
+  return <Link to={target.href} class={className}>{children}</Link>;
 }
+
+// Functional wrappers forward their class explicitly to the intended element.
+HtmlProse.inheritAttrs = false;
+ContentLink.inheritAttrs = false;

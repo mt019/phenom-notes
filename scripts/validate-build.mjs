@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { runFontDelivery } from '@phenomcanvas/ui/validators/lib/font-delivery.mjs';
+import { runFontDelivery } from '@phenomcanvas/ui-vue/validators/lib/font-delivery.mjs';
 
 const dist = resolve('dist');
 
@@ -15,7 +15,7 @@ runFontDelivery({ dist });
 // 字型自 v0.1.65 起由 assets.phenomcanvas.com 供應，產物裡不再有字型檔，所以驗的是
 // 產物的 CSS 有沒有引到套件 manifest 登記的那兩支 URL，以及 HTML 有沒有 preload 常用面
 // （preload 由 vite-font-preload.mjs 注入；漏掛 plugin 時 CSS 照樣對，只是首屏字型晚一個往返）。
-const manifest = JSON.parse(readFileSync(resolve('node_modules/@phenomcanvas/ui/fonts/external-manifest.json'), 'utf8'));
+const manifest = JSON.parse(readFileSync(new URL(import.meta.resolve('@phenomcanvas/ui-vue/fonts/external-manifest.json')), 'utf8'));
 const urlFor = (prefix) => {
   const file = manifest.files.find((entry) => entry.source.startsWith(prefix));
   if (!file) throw new Error(`套件 manifest 沒有登記 ${prefix}`);
@@ -86,10 +86,10 @@ for (const route of routes) {
   // 眉標按層級回上一層：條目頁回條目索引（索引自己再回手記），其餘內頁直接回手記。
   // 每一層都要有，否則讀者從搜尋結果直接落在某一頁時走不出去。
   if (route.startsWith('/kb/')) {
-    if (!/aria-label="回條目"[^>]*href="\/notes\/kb"/.test(html)) {
+    if (![...html.matchAll(/<a\b[^>]*>/g)].some(([tag])=>tag.includes('aria-label="回條目"')&&/href="\/notes\/kb"/.test(tag))) {
       throw new Error(`條目頁眉標沒有回條目索引：${route}`);
     }
-  } else if (route !== '/' && !/aria-label="回手記"[^>]*href="\/notes\/?"/.test(html)) {
+  } else if (route !== '/' && ![...html.matchAll(/<a\b[^>]*>/g)].some(([tag])=>tag.includes('aria-label="回手記"')&&/href="\/notes\/?"/.test(tag))) {
     throw new Error(`內頁眉標沒有回手記：${route}`);
   }
 }

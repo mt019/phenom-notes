@@ -10,3 +10,5 @@ public/timeline.json
 public/songs.json
 src/data/generated/
 .DS_Store
+.test-evidence/
+.wrangler/

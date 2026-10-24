@@ -1,11 +1,22 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "checkJs": false,
-    "jsx": "react-jsx",
+    "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "target": "ES2022"
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noEmit": true,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
-  "include": ["src", "scripts", "vite.config.js"]
+  "include": [
+    "node_modules/@phenomcanvas/ui-vue/src/**/*.ts",
+    "node_modules/@phenomcanvas/ui-vue/src/**/*.vue",
+    "node_modules/@phenomcanvas/ui-vue/src/**/*.js",
+    "node_modules/@phenomcanvas/ui-vue/core/**/*.js"
+  ]
 }

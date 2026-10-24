@@ -17,9 +17,15 @@ if (!webCommit) {
 if (!/^[0-9a-f]{40}$/.test(webCommit)) {
   throw new Error('WEB_COMMIT 必須是完整 40 字元 Git SHA；先提交或在 CI 傳入精確 revision');
 }
+const packageVersion = (name) => JSON.parse(readFileSync(resolve('node_modules',name,'package.json'),'utf8')).version;
 const manifest = {
   schemaVersion: 1,
   site: 'notes',
+  framework: 'vue',
+  frameworkVersion: packageVersion('vue'),
+  viteVersion: packageVersion('vite'),
+  uiPackage: '@phenomcanvas/ui-vue',
+  uiVersion: packageVersion('@phenomcanvas/ui-vue'),
   hostname: 'notes.phenomcanvas.com',
   webRepository: 'mt019/phenom-notes',
   webCommit,

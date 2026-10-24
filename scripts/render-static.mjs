@@ -182,7 +182,7 @@ for (const page of pages) {
   const location = page.route === '/' ? '/notes/' : `/notes${page.route}`;
   const html = template
     .replace(/<title>[\s\S]*?<\/title>/, head)
-    .replace('<div id="root"></div>', `<div id="root">${render(location)}</div>`);
+    .replace('<div id="root"></div>', `<div id="root">${await render(location)}</div>`);
   const output = path.join(dist, page.file);
   await mkdir(path.dirname(output), { recursive: true });
   await writeFile(output, html);
